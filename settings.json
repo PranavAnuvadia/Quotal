@@ -1,0 +1,10 @@
+{
+  "model_key": "small",
+  "device": "cuda",
+  "ai_enhance": true,
+  "enhancer_mode": "rules",
+  "strip_hesitations": true,
+  "audio_chimes": true,
+  "pill_x": 775,
+  "pill_y": 706
+}

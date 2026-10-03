@@ -1,0 +1,51 @@
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Heavy AI Model weights & checkpoints
+models/
+*.bin
+*.pt
+*.pth
+*.onnx
+
+# User personal data & history
+history.jsonl
+crash*.txt
+*.log
+
+# Windows temporary / shortcut files
+_tmp*
+*.lnk
+
+# Tool binaries
+rcedit.exe
+tools_rcedit.exe
+
+# Environment cfg
+pyvenv.cfg
+

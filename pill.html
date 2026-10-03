@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Lets the accent color animate between states */
+  @property --accent { syntax: '<color>'; inherits: true; initial-value: #3b82f6; }
+
+  :root {
+    --window-bg: transparent;
+    --accent: #3b82f6;
+    --text: #f1f5f9;
+    --muted: #8b93a7;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+  html, body {
+    width: 100%; height: 100%;
+    margin: 0; padding: 0;
+    background: transparent !important;
+    background-color: transparent !important;
+    overflow: hidden;
+    font-family: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .pill {
+    width: 100%;
+    height: 100%;
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 18px 6px 8px;
+    border-radius: 9999px;
+    background:
+      radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+      linear-gradient(180deg, #1a1a23 0%, #101015 100%);
+    border: 1px solid color-mix(in srgb, var(--accent) 38%, rgba(255,255,255,.08));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    transition: --accent .5s ease, transform .15s ease;
+    animation: enter .45s cubic-bezier(.16, 1, .3, 1) both;
+    cursor: grab;
+    overflow: hidden;
+  }
+  .pill:active {
+    cursor: grabbing;
+    transform: scale(0.985);
+  }
+  @keyframes enter { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+  /* Orb */
+  .orb {
+    --lvl: 0;
+    position: relative; flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 50%;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.14),
+      0 0 calc(8px + var(--lvl) * 20px) color-mix(in srgb, var(--accent) 70%, transparent);
+  }
+  .orb canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }
+
+  /* Text */
+  .text { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .title-row { display: flex; align-items: baseline; gap: 8px; }
+  .title { font-size: 13.5px; font-weight: 600; color: var(--text); letter-spacing: -.01em; line-height: 1.2; white-space: nowrap; }
+  .timer { font-size: 11px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; transition: opacity .2s; }
+  .sub { font-size: 10.5px; color: var(--muted); line-height: 1.2; margin-top: 3px; white-space: nowrap; }
+  .pop { animation: pop .28s cubic-bezier(.16, 1, .3, 1); }
+  @keyframes pop { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+  /* Processing: text shimmer */
+  .pill[data-state="transcribing"] .title {
+    background: linear-gradient(90deg, var(--muted) 20%, #fff 50%, var(--muted) 80%) 0 0 / 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 1.6s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* Right slot: waveform / check */
+  .slot {
+    position: relative; flex-shrink: 0;
+    width: 52px; height: 24px; margin-left: auto;
+    padding-left: 12px; box-sizing: content-box;
+    border-left: 1px solid rgba(255,255,255,.08);
+  }
+  .wave, .check { position: absolute; inset: 0 0 0 12px; transition: opacity .25s, transform .25s; }
+  .wave { display: flex; align-items: center; justify-content: space-between; }
+  .bar {
+    width: 3px; height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 60%, #fff), var(--accent));
+    transform: scaleY(.18); will-change: transform;
+  }
+  .check { display: grid; place-items: center; opacity: 0; transform: scale(.6); }
+  .check svg { width: 22px; height: 22px; }
+  .check path { stroke: var(--accent); stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; }
+
+  .pill[data-state="done"] .wave,
+  .pill[data-state="error"] .wave { opacity: 0; transform: scale(.8); }
+  .pill[data-state="done"] .check,
+  .pill[data-state="error"] .check { opacity: 1; transform: none; }
+  .pill[data-state="done"] .check path,
+  .pill[data-state="error"] .check path { animation: draw .4s .1s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .pill[data-state="error"] .check .ok { display: none; }
+  .pill:not([data-state="error"]) .check .err { display: none; }
+  .pill[data-state="done"] .timer, .pill[data-state="error"] .timer { opacity: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pill, .pop, .title { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pill" id="pill" data-state="listening">
+  <div class="orb" id="orb-box"><canvas id="orb-canvas"></canvas></div>
+
+  <div class="text">
+    <div class="title-row">
+      <div class="title" id="status-title">Listening</div>
+      <div class="timer" id="timer"></div>
+    </div>
+    <div class="sub" id="status-sub">Hold key to speak</div>
+  </div>
+
+  <div class="slot">
+    <div class="wave" id="wave">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+    <div class="check">
+      <svg viewBox="0 0 24 24">
+        <path class="ok" d="M5 12.5l4.5 4.5L19 7.5"/>
+        <path class="err" d="M7 7l10 10M17 7L7 17"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------- WebGL fluid orb ----------
+const VERT = `
+attribute vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
+`;
+
+const FRAG = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform vec3 u_color;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+}
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.6;
+  for (int i = 0; i < 3; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
+  return v;
+}
+void main() {
+  vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+  float t = u_time * 0.35;
+  vec2 drift = vec2(sin(t) + 0.6 * sin(t * 1.7 + 1.3), cos(t * 0.8) + 0.6 * cos(t * 1.3 + 2.1));
+  vec2 p = vec2(uv.x * 1.8, uv.y) + drift * 0.7;
+  vec2 q = vec2(fbm(p + drift), fbm(p + vec2(3.2, 1.5) - drift));
+  float f = fbm(p + 1.2 * q);
+  float g = clamp(1.0 - uv.y, 0.0, 1.0);
+  float anchor = smoothstep(0.0, 0.3, uv.y);
+  float shade = clamp(g + (f - 0.5) * 0.8 * anchor, 0.0, 1.0);
+  vec3 white = vec3(0.99, 1.0, 1.0);
+  vec3 light = mix(white, u_color, 0.5);
+  vec3 col = white;
+  col = mix(col, light, smoothstep(0.28, 0.52, shade));
+  col = mix(col, u_color, smoothstep(0.58, 0.88, shade));
+  float edge = smoothstep(0.5, 0.485, distance(uv, vec2(0.5)));
+  gl_FragColor = vec4(col * edge, edge);
+}
+`;
+
+const hexToRgb = hex => {
+  const n = parseInt(hex.replace('#', ''), 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+};
+
+const canvas = document.getElementById('orb-canvas');
+const gl = canvas.getContext('webgl', { antialias: true, alpha: true, premultipliedAlpha: true });
+let uCol, uTime;
+
+if (gl) {
+  const compile = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
+  gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, 'a_pos');
+  gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+  uTime = gl.getUniformLocation(prog, 'u_time');
+  uCol = gl.getUniformLocation(prog, 'u_color');
+
+  const px = Math.round(40 * Math.min(window.devicePixelRatio || 1, 2));
+  canvas.width = canvas.height = px;
+  gl.viewport(0, 0, px, px);
+  gl.uniform2f(gl.getUniformLocation(prog, 'u_resolution'), px, px);
+} else {
+  canvas.style.background = 'radial-gradient(circle at 35% 30%, #fff, var(--accent))';
+}
+
+// ---------- State ----------
+const STATES = {
+  listening:    { title: 'Listening',      sub: 'Release key to paste', color: '#3b82f6' },
+  transcribing: { title: 'Enhancing text', sub: 'AI polishing',         color: '#a855f7' },
+  done:         { title: 'Pasted',         sub: 'Done',                 color: '#10b981' },
+  error:        { title: 'Failed',         sub: 'Try again',            color: '#f43f5e' },
+};
+
+const pill = document.getElementById('pill');
+const orbBox = document.getElementById('orb-box');
+const titleEl = document.getElementById('status-title');
+const subEl = document.getElementById('status-sub');
+const timerEl = document.getElementById('timer');
+const bars = [...document.querySelectorAll('.bar')];
+
+let state = 'listening';
+let rgb = hexToRgb(STATES.listening.color);
+let targetRgb = rgb.slice();
+let targetLevel = 0.1, level = 0.1;
+let orbTime = 0, last = performance.now();
+let timerStart = null;
+
+const swap = el => { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); };
+
+function fmt(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// ---------- Render loop ----------
+function render(now) {
+  const dt = Math.min((now - last) / 1000, 0.1);
+  last = now;
+
+  level += (targetLevel - level) * Math.min(1, dt * 14);
+  for (let i = 0; i < 3; i++) rgb[i] += (targetRgb[i] - rgb[i]) * Math.min(1, dt * 8);
+
+  if (gl) {
+    gl.uniform3f(uCol, rgb[0], rgb[1], rgb[2]);
+    orbTime += dt * (1 + level * 1.5);
+    gl.uniform1f(uTime, orbTime);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+
+  orbBox.style.setProperty('--lvl', level.toFixed(3));
+
+  const lvl = state === 'transcribing' ? 0.45 : level;
+  const spd = state === 'transcribing' ? 5 : 8;
+  const n = bars.length, mid = (n - 1) / 2;
+  for (let i = 0; i < n; i++) {
+    const env = 1 - Math.abs(i - mid) / (mid + 1.5);
+    const wob = 0.5 + 0.5 * Math.sin(now / 1000 * spd - i * 0.9);
+    const s = Math.max(0.18, Math.min(1, 0.18 + lvl * env * (0.45 + 0.55 * wob) * 1.5));
+    bars[i].style.transform = `scaleY(${s.toFixed(3)})`;
+  }
+
+  if (timerStart !== null) timerEl.textContent = fmt(performance.now() - timerStart);
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+// ---------- API exposed to Python ----------
+window.setState = function (next) {
+  const cfg = STATES[next];
+  if (!cfg) return;
+  state = next;
+  pill.dataset.state = next;
+
+  titleEl.textContent = cfg.title; swap(titleEl);
+  subEl.textContent = cfg.sub;     swap(subEl);
+
+  document.documentElement.style.setProperty('--accent', cfg.color);
+  targetRgb = hexToRgb(cfg.color);
+
+  if (next === 'listening') {
+    timerStart = performance.now();
+    timerEl.textContent = '0:00';
+  } else {
+    timerStart = null;
+    if (next === 'transcribing') targetLevel = 0.4;
+  }
+};
+
+window.setLevel = function (lvl) {
+  targetLevel = Math.max(0.05, Math.min(1.0, lvl));
+};
+
+// Drag and Reposition Handling
+pill.addEventListener('mousedown', (e) => {
+  if (e.button === 0 && window.pywebview && window.pywebview.api) {
+    window.pywebview.api.start_drag();
+  }
+});
+
+pill.addEventListener('dblclick', (e) => {
+  if (e.button === 0 && window.pywebview && window.pywebview.api) {
+    window.pywebview.api.reset_position();
+  }
+});
+</script>
+</body>
+</html>
