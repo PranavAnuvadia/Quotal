@@ -72,8 +72,13 @@ user32.SetWindowRgn.argtypes = [wintypes.HWND, wintypes.HRGN, wintypes.BOOL]
 user32.SetWindowRgn.restype = wintypes.INT
 user32.GetClientRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
 user32.GetClientRect.restype = wintypes.BOOL
+WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+user32.EnumChildWindows.argtypes = [wintypes.HWND, WNDENUMPROC, wintypes.LPARAM]
+user32.EnumChildWindows.restype = wintypes.BOOL
 gdi32.CreateRoundRectRgn.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 gdi32.CreateRoundRectRgn.restype = wintypes.HRGN
+gdi32.DeleteObject.argtypes = [wintypes.HGDIOBJ]
+gdi32.DeleteObject.restype = wintypes.BOOL
 dwmapi.DwmSetWindowAttribute.argtypes = [wintypes.HWND, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD]
 dwmapi.DwmSetWindowAttribute.restype = ctypes.c_long
 
@@ -174,75 +179,153 @@ def reset_pill_position():
         log(f"Error resetting pill position: {e}")
 
 
+def get_hwnd():
+    """Returns the current valid Win32 HWND for the Form."""
+    global hwnd, form
+    if form:
+        try:
+            h = form.Handle.ToInt64()
+            if h and user32.IsWindow(h):
+                hwnd = h
+                api._hwnd = h
+                return h
+        except Exception:
+            pass
+    return hwnd
+
+
 class DragApi:
     """Exposed to JavaScript for smooth native drag and repositioning."""
     def __init__(self):
         self._hwnd = None
 
     def start_drag(self):
-        if self._hwnd:
+        cur_hwnd = get_hwnd()
+        if cur_hwnd:
             user32.ReleaseCapture()
-            user32.SendMessageW(self._hwnd, 0x00A1, 2, 0)  # WM_NCLBUTTONDOWN, HTCAPTION
+            user32.SendMessageW(cur_hwnd, 0x00A1, 2, 0)  # WM_NCLBUTTONDOWN, HTCAPTION
             save_current_position()
+            apply_all_regions(pad=1)
 
     def reset_position(self):
         reset_pill_position()
+        apply_all_regions(pad=1)
 
 
 api = DragApi()
 
 
-def create_capsule_region(w, h, pad=1.5):
-    """Creates a GDI+ capsule Region with extra breathing room so the anti-aliased border is never shaved."""
-    gp = GraphicsPath()
-    r = float(h)
-    gp.AddArc(-pad, -pad, r + 2.0 * pad, r + 2.0 * pad, 90.0, 180.0)
-    gp.AddLine(r / 2.0, -pad, float(w) - r / 2.0, -pad)
-    gp.AddArc(float(w) - r - pad, -pad, r + 2.0 * pad, r + 2.0 * pad, 270.0, 180.0)
-    gp.AddLine(float(w) - r / 2.0, r + pad, r / 2.0, r + pad)
-    gp.CloseFigure()
-    return Region(gp)
+def create_capsule_region(w, h, pad=1):
+    """Creates a GDI+ capsule Region with pad pixels to preserve anti-aliased borders."""
+    pad_int = int(pad)
+    hrgn = gdi32.CreateRoundRectRgn(
+        -pad_int, -pad_int,
+        int(w) + pad_int + 1, int(h) + pad_int + 1,
+        int(h) + 2 * pad_int, int(h) + 2 * pad_int
+    )
+    r = Region.FromHrgn(System.IntPtr(hrgn))
+    gdi32.DeleteObject(hrgn)
+    return r
 
 
-def apply_all_regions(pad=2):
-    """Applies capsule region with padding so the colored anti-aliased border is 100% preserved."""
-    if not hwnd or phys_w <= 0 or phys_h <= 0:
+def apply_all_regions(pad=1):
+    """
+    Applies exact capsule clipping region to:
+    1. The top-level Form HWND.
+    2. All WinForms child controls in form.Controls.
+    3. All native child HWNDs (WebView2, Chrome_WidgetWin_0, Intermediate D3D Window, etc.).
+    Preserves 100% of the anti-aliased border with pad pixels while permanently cutting off corners.
+    """
+    global phys_w, phys_h
+    cur_hwnd = get_hwnd()
+    if not cur_hwnd or phys_w <= 0 or phys_h <= 0:
         return
+
+    pad_int = int(pad)
+
+    # 1. Main window HWND
     try:
-        # Expand region slightly outwards by pad pixels to preserve full anti-aliased colored border
         hrgn = gdi32.CreateRoundRectRgn(
-            -pad, -pad,
-            phys_w + pad + 1, phys_h + pad + 1,
-            phys_h + 2 * pad, phys_h + 2 * pad
+            -pad_int, -pad_int,
+            phys_w + pad_int + 1, phys_h + pad_int + 1,
+            phys_h + 2 * pad_int, phys_h + 2 * pad_int
         )
-        user32.SetWindowRgn(hwnd, hrgn, True)
+        user32.SetWindowRgn(cur_hwnd, hrgn, True)
     except Exception as e:
         log(f"Error setting main window region: {e}")
 
+    # 2. Managed WinForms controls and Form.Region
+    if form:
+        def _apply_managed():
+            try:
+                form.Region = create_capsule_region(phys_w, phys_h, pad_int)
+            except Exception:
+                pass
+            try:
+                for c in form.Controls:
+                    try:
+                        c.Region = create_capsule_region(phys_w, phys_h, pad_int)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        try:
+            if form.InvokeRequired:
+                form.BeginInvoke(System.Action(_apply_managed))
+            else:
+                _apply_managed()
+        except Exception:
+            pass
+
+    # 3. Native child HWNDs (DirectComposition / Chromium / WebView2 render surfaces)
+    try:
+        def _enum_child(chwnd, _):
+            try:
+                hrgn_c = gdi32.CreateRoundRectRgn(
+                    -pad_int, -pad_int,
+                    phys_w + pad_int + 1, phys_h + pad_int + 1,
+                    phys_h + 2 * pad_int, phys_h + 2 * pad_int
+                )
+                user32.SetWindowRgn(chwnd, hrgn_c, True)
+            except Exception:
+                pass
+            return True
+
+        cb = WNDENUMPROC(_enum_child)
+        user32.EnumChildWindows(cur_hwnd, cb, 0)
+    except Exception as e:
+        log(f"Error applying regions to child windows: {e}")
+
 
 def apply_dwm_borderless():
-    """Completely disables Windows 11 DWM window border and default corner rounding."""
-    if not hwnd:
+    """Completely disables Windows 11 DWM window border, Mica backdrop, and default corner rounding."""
+    cur_hwnd = get_hwnd()
+    if not cur_hwnd:
         return
     try:
         # DWMWA_WINDOW_CORNER_PREFERENCE = 33, DWMWCP_DONOTROUND = 1
         c_pref = ctypes.c_int(1)
-        dwmapi.DwmSetWindowAttribute(hwnd, 33, ctypes.byref(c_pref), 4)
+        dwmapi.DwmSetWindowAttribute(cur_hwnd, 33, ctypes.byref(c_pref), 4)
 
         # DWMWA_BORDER_COLOR = 34, DWMWA_COLOR_NONE = 0xFFFFFFFE (removes border in Win11)
         c_none = ctypes.c_uint(0xFFFFFFFE)
-        dwmapi.DwmSetWindowAttribute(hwnd, 34, ctypes.byref(c_none), 4)
+        dwmapi.DwmSetWindowAttribute(cur_hwnd, 34, ctypes.byref(c_none), 4)
+
+        # DWMWA_SYSTEMBACKDROP_TYPE = 38, DWMSBT_NONE = 1 (removes dark Mica backdrop)
+        c_backdrop = ctypes.c_int(1)
+        dwmapi.DwmSetWindowAttribute(cur_hwnd, 38, ctypes.byref(c_backdrop), 4)
 
         # Strip Win32 border/caption styles from GWL_STYLE
         GWL_STYLE = -16
-        style = user32.GetWindowLongW(hwnd, GWL_STYLE)
-        user32.SetWindowLongW(hwnd, GWL_STYLE, style & ~(0x00800000 | 0x00400000 | 0x00040000 | 0x00C00000))
+        style = user32.GetWindowLongW(cur_hwnd, GWL_STYLE)
+        user32.SetWindowLongW(cur_hwnd, GWL_STYLE, style & ~(0x00800000 | 0x00400000 | 0x00040000 | 0x00C00000))
     except Exception as e:
         log(f"Error applying DWM borderless attributes: {e}")
 
 
 def apply_overlay_styles():
-    global form, hwnd, pos_x, pos_y, phys_w, phys_h
+    global form, pos_x, pos_y, phys_w, phys_h
 
     if win:
         try:
@@ -257,67 +340,84 @@ def apply_overlay_styles():
         time.sleep(0.05)
 
     if form:
-        hwnd = form.Handle.ToInt64()
-        api._hwnd = hwnd
         update_placement()
 
-        # 1. Eliminate Windows 11 DWM borders and corner frames
-        apply_dwm_borderless()
-
-        # 2. Extend DWM frame for true per-pixel glass transparency
-        m = _MARGINS(-1, -1, -1, -1)
-        dwmapi.DwmExtendFrameIntoClientArea(hwnd, ctypes.byref(m))
-
-        # 3. Configure Form & WebView2 background on UI thread (ZERO white flash, ZERO black box)
+        # 1. Configure Form & WebView2 background on UI thread FIRST
         def setup_form():
             form.ShowInTaskbar = False
-            form.BackColor = Color.Black
+            form.SetStyle(WinForms.ControlStyles.SupportsTransparentBackColor, True)
+            form.BackColor = Color.Transparent
             for c in form.Controls:
                 try:
                     c.DefaultBackgroundColor = Color.Transparent
                 except Exception:
                     pass
-            try:
-                form.Region = create_capsule_region(phys_w, phys_h, pad=1.5)
-            except Exception:
-                pass
             form.Location = Point(pos_x, pos_y)
             form.Size = Size(phys_w, phys_h)
+
+            # Hook WinForms events to permanently re-apply capsule regions whenever
+            # the window moves, resizes, lays out, changes visibility, or recreates its handle.
+            form.HandleCreated += lambda s, e: (get_hwnd(), apply_dwm_borderless(), apply_all_regions(pad=1))
+            form.Resize += lambda s, e: apply_all_regions(pad=1)
+            form.Move += lambda s, e: apply_all_regions(pad=1)
+            form.LocationChanged += lambda s, e: apply_all_regions(pad=1)
+            form.SizeChanged += lambda s, e: apply_all_regions(pad=1)
+            form.VisibleChanged += lambda s, e: apply_all_regions(pad=1)
+            form.Activated += lambda s, e: apply_all_regions(pad=1)
+            form.Layout += lambda s, e: apply_all_regions(pad=1)
+            form.Shown += lambda s, e: apply_all_regions(pad=1)
+
             form.Hide()
 
         form.Invoke(System.Action(setup_form))
 
-        # 4. Apply Win32 Extended Styles: ToolWindow, TopMost, NoActivate
-        ex = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-        new_ex = (ex & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST
-        user32.SetWindowLongW(hwnd, GWL_EXSTYLE, new_ex)
+        # 2. Grab LIVE HWND now that setup_form has finalized the Form properties
+        cur_hwnd = get_hwnd()
 
-        # 5. OS-level capsule region with extra breathing room (zero rectangular box, full colored border)
-        apply_all_regions(pad=2)
+        # 3. Eliminate Windows 11 DWM borders, dark Mica, and corner frames
+        apply_dwm_borderless()
+
+        # 4. Extend DWM frame for true per-pixel glass transparency
+        m = _MARGINS(-1, -1, -1, -1)
+        dwmapi.DwmExtendFrameIntoClientArea(cur_hwnd, ctypes.byref(m))
+
+        # 5. Apply Win32 Extended Styles: ToolWindow, TopMost, NoActivate
+        ex = user32.GetWindowLongW(cur_hwnd, GWL_EXSTYLE)
+        new_ex = (ex & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TOPMOST
+        user32.SetWindowLongW(cur_hwnd, GWL_EXSTYLE, new_ex)
+
+        # 6. OS-level capsule region with pad pixels (zero rectangular box, full colored border)
+        apply_all_regions(pad=1)
 
         # Position off-screen and hide initially
         user32.SetWindowPos(
-            hwnd, 0, -10000, -10000, 0, 0,
+            cur_hwnd, 0, -10000, -10000, 0, 0,
             SWP_NOACTIVATE | SWP_NOSIZE | SWP_HIDEWINDOW | SWP_FRAMECHANGED
         )
-        user32.ShowWindow(hwnd, SW_HIDE)
-        log(f"True transparent styles applied with padded capsule clipping. HWND={hwnd}, pos=({pos_x},{pos_y}), size=({phys_w},{phys_h})")
+        user32.ShowWindow(cur_hwnd, SW_HIDE)
+        log(f"True transparent styles applied with padded capsule clipping. HWND={cur_hwnd}, pos=({pos_x},{pos_y}), size=({phys_w},{phys_h})")
 
 
 def do_show(state="listening"):
-    global win, hwnd, form, pos_x, pos_y, phys_w, phys_h
-    if not win or not hwnd:
+    global win, form, pos_x, pos_y, phys_w, phys_h
+    cur_hwnd = get_hwnd()
+    if not win or not cur_hwnd:
         return
     update_placement()
     log(f"Showing pill (state={state}) at ({pos_x},{pos_y})")
 
+    apply_dwm_borderless()
+
+    user32.SetWindowPos(
+        cur_hwnd, HWND_TOPMOST, pos_x, pos_y, phys_w, phys_h,
+        SWP_NOACTIVATE | SWP_SHOWWINDOW
+    )
+    user32.ShowWindow(cur_hwnd, SW_SHOWNOACTIVATE)
+
     def _show_form():
         if form:
             form.Show()
-            try:
-                form.Region = create_capsule_region(phys_w, phys_h, pad=1.5)
-            except Exception:
-                pass
+            apply_all_regions(pad=1)
 
     if form:
         try:
@@ -325,14 +425,18 @@ def do_show(state="listening"):
         except Exception:
             pass
 
-    apply_dwm_borderless()
-    apply_all_regions(pad=2)
+    apply_all_regions(pad=1)
 
-    user32.SetWindowPos(
-        hwnd, HWND_TOPMOST, pos_x, pos_y, phys_w, phys_h,
-        SWP_NOACTIVATE | SWP_SHOWWINDOW
-    )
-    user32.ShowWindow(hwnd, SW_SHOWNOACTIVATE)
+    # Deferred re-assertion on UI thread to ensure region survives initial paint/layout passes
+    if form:
+        def _deferred_reapply():
+            time.sleep(0.04)
+            try:
+                form.BeginInvoke(System.Action(lambda: apply_all_regions(pad=1)))
+            except Exception:
+                pass
+        threading.Thread(target=_deferred_reapply, daemon=True).start()
+
     try:
         win.evaluate_js(f"window.setState('{state}')")
     except Exception:
@@ -340,15 +444,16 @@ def do_show(state="listening"):
 
 
 def do_hide():
-    global win, hwnd, form
+    global win, form
     log("Hiding pill")
 
-    if hwnd:
+    cur_hwnd = get_hwnd()
+    if cur_hwnd:
         user32.SetWindowPos(
-            hwnd, 0, -10000, -10000, 0, 0,
+            cur_hwnd, 0, -10000, -10000, 0, 0,
             SWP_NOACTIVATE | SWP_NOSIZE | SWP_HIDEWINDOW
         )
-        user32.ShowWindow(hwnd, SW_HIDE)
+        user32.ShowWindow(cur_hwnd, SW_HIDE)
 
     def _hide_form():
         if form:
