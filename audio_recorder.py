@@ -6,6 +6,7 @@ import sounddevice as sd
 import numpy as np
 import threading
 import queue
+import time
 
 
 class AudioRecorder:
@@ -39,24 +40,45 @@ class AudioRecorder:
             self.is_recording = True
             self.current_level = 0.0
 
-        if self.stream is None:
-            self.stream = sd.InputStream(
-                samplerate=self.sample_rate,
-                channels=1,
-                dtype="float32",
-                blocksize=1024,
-                callback=self._audio_callback
-            )
-            self.stream.start()
-        elif not self.stream.active:
-            self.stream.start()
+        for attempt in range(3):
+            try:
+                if self.stream is not None:
+                    try:
+                        self.stream.stop()
+                        self.stream.close()
+                    except Exception:
+                        pass
+                    self.stream = None
+                    time.sleep(0.02)
+
+                self.stream = sd.InputStream(
+                    samplerate=self.sample_rate,
+                    channels=1,
+                    dtype="float32",
+                    blocksize=1024,
+                    callback=self._audio_callback
+                )
+                self.stream.start()
+                return
+            except Exception as e:
+                print(f"[AudioRecorder Error] attempt {attempt + 1}: {e}")
+                time.sleep(0.05)
+                if self.stream is not None:
+                    try:
+                        self.stream.close()
+                    except Exception:
+                        pass
+                    self.stream = None
 
     def stop(self) -> np.ndarray:
         """Stop capturing and return the recorded audio as a float32 numpy array."""
         self.is_recording = False
         if self.stream:
-            self.stream.stop()
-            self.stream.close()
+            try:
+                self.stream.stop()
+                self.stream.close()
+            except Exception:
+                pass
             self.stream = None
 
         with self._lock:

@@ -227,8 +227,18 @@ class QuotalApp:
 
         self._play_chime(800, 35)
         print("\n[🎙️ Listening...] (Keep holding key while speaking)")
-        self.recorder.start()
-        self.overlay.show("Listening...")
+
+        # Show pill overlay immediately so visual response is instant
+        try:
+            self.overlay.show("Listening...")
+        except Exception as e:
+            print(f"[Overlay Error] {e}")
+
+        # Start audio recording safely
+        try:
+            self.recorder.start()
+        except Exception as e:
+            print(f"[Recorder Error] {e}")
 
         self._meter_running = True
         threading.Thread(target=self._meter_loop, daemon=True).start()
@@ -240,7 +250,10 @@ class QuotalApp:
             self.is_recording = False
 
         self._meter_running = False
-        self.overlay.set_processing()
+        try:
+            self.overlay.set_processing()
+        except Exception as e:
+            print(f"[Overlay Error] {e}")
         print("[⚡ Transcribing...]")
 
         threading.Thread(target=self._process_and_paste, daemon=True).start()
@@ -289,23 +302,34 @@ class QuotalApp:
             print(f"[App Error] Transcription error: {err}")
             import traceback
             traceback.print_exc()
-            self.overlay.set_error()
+            try:
+                self.overlay.set_error()
+            except Exception:
+                pass
             time.sleep(0.5)
         finally:
-            self.overlay.hide()
+            try:
+                self.overlay.hide()
+            except Exception:
+                pass
 
     def _key_poll_loop(self):
         """Hardware polling loop in dedicated worker thread."""
         key_was_down = False
         while self._running:
-            key_is_down = is_key_down(VK_RMENU) or is_key_down(VK_F8)
-            
-            if key_is_down and not key_was_down:
-                key_was_down = True
-                self.start_dictation()
-            elif not key_is_down and key_was_down:
-                key_was_down = False
-                self.stop_dictation()
+            try:
+                key_is_down = is_key_down(VK_RMENU) or is_key_down(VK_F8)
+                
+                if key_is_down and not key_was_down:
+                    key_was_down = True
+                    self.start_dictation()
+                elif not key_is_down and key_was_down:
+                    key_was_down = False
+                    self.stop_dictation()
+            except Exception as e:
+                print(f"[KeyPoll Loop Error] {e}")
+                import traceback
+                traceback.print_exc()
                 
             time.sleep(0.015)
 
