@@ -184,7 +184,7 @@ def on_start():
         if ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(val), 4) == 0:
             break
     # Mica-like caption color to blend with UI (Windows 11; ignored elsewhere)
-    color = ctypes.c_int(0x0F0B0B)  # COLORREF 0x00BBGGRR -> #0B0B0F
+    color = ctypes.c_int(0x0B0707)  # COLORREF 0x00BBGGRR -> #07070B
     ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(color), 4)
 
     def _icon():
@@ -218,10 +218,10 @@ def main():
         "Quotal",
         url=HTML_PATH,
         js_api=Api(),
-        width=1060,
-        height=720,
-        min_size=(860, 580),
-        background_color="#0b0b0f",
+        width=1180,
+        height=780,
+        min_size=(900, 600),
+        background_color="#0a0a0d",
         text_select=False,
     )
     webview.start(on_start, gui="edgechromium")
