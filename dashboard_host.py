@@ -26,7 +26,10 @@ try:
 except Exception:
     pass
 
+import tempfile
 import webview
+import webview.platforms.winforms as wf
+wf.cache_dir = os.path.join(tempfile.gettempdir(), "quotal_dash_wv")
 from webview.platforms.winforms import BrowserView
 import System
 import System.Windows.Forms as WinForms

@@ -56,8 +56,16 @@ class OverlayPill:
                 try:
                     self.process.stdin.write(cmd + "\n")
                     self.process.stdin.flush()
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"[OverlayPill] Stdin write error: {e}. Restarting host...")
+                    self._start_host()
+                    time.sleep(0.5)
+                    try:
+                        if self.process and self.process.stdin:
+                            self.process.stdin.write(cmd + "\n")
+                            self.process.stdin.flush()
+                    except Exception:
+                        pass
 
     def show(self, text="Listening..."):
         """Displays the pill with the fluid orb."""

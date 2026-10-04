@@ -98,8 +98,8 @@ VK_F8 = 0x77       # F8 (alternative trigger key)
 
 
 def is_key_down(vk_code: int) -> bool:
-    """Check if physical key is currently held down using Windows API."""
-    return bool(ctypes.windll.user32.GetAsyncKeyState(vk_code) & 0x8000)
+    """Check if physical or logical key is currently held down using Windows API."""
+    return bool((ctypes.windll.user32.GetAsyncKeyState(vk_code) & 0x8000) or (ctypes.windll.user32.GetKeyState(vk_code) & 0x8000))
 
 
 class QuotalApp:

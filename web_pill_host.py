@@ -43,7 +43,10 @@ try:
 except Exception:
     pass
 
+import tempfile
 import webview
+import webview.platforms.winforms as wf
+wf.cache_dir = os.path.join(tempfile.gettempdir(), "quotal_pill_wv")
 from webview.platforms.winforms import BrowserView
 import System
 import System.Windows.Forms as WinForms
@@ -72,6 +75,8 @@ user32.SetWindowRgn.argtypes = [wintypes.HWND, wintypes.HRGN, wintypes.BOOL]
 user32.SetWindowRgn.restype = wintypes.INT
 user32.GetClientRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
 user32.GetClientRect.restype = wintypes.BOOL
+user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
+user32.GetWindowRect.restype = wintypes.BOOL
 WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
 user32.EnumChildWindows.argtypes = [wintypes.HWND, WNDENUMPROC, wintypes.LPARAM]
 user32.EnumChildWindows.restype = wintypes.BOOL
@@ -146,19 +151,36 @@ def update_placement():
 
 
 def save_current_position():
-    """Saves user's dragged position to settings.json."""
-    if form:
-        try:
-            cur_x = form.Location.X
-            cur_y = form.Location.Y
+    """Saves user's dragged position to settings.json using real-time OS coordinates."""
+    global pos_x, pos_y
+    cur_hwnd = get_hwnd()
+    if not cur_hwnd:
+        return
+    try:
+        rect = wintypes.RECT()
+        if user32.GetWindowRect(cur_hwnd, ctypes.byref(rect)):
+            cur_x = int(rect.left)
+            cur_y = int(rect.top)
             if cur_x > -500 and cur_y > -500:
+                pos_x = cur_x
+                pos_y = cur_y
+                if form:
+                    try:
+                        def _sync():
+                            form.Location = Point(cur_x, cur_y)
+                        if form.InvokeRequired:
+                            form.BeginInvoke(System.Action(_sync))
+                        else:
+                            _sync()
+                    except Exception:
+                        pass
                 settings = load_settings()
                 settings["pill_x"] = cur_x
                 settings["pill_y"] = cur_y
                 save_settings(settings)
-                log(f"Saved custom pill position: ({cur_x}, {cur_y})")
-        except Exception as e:
-            log(f"Error saving pill position: {e}")
+                log(f"Saved custom pill position from GetWindowRect: ({cur_x}, {cur_y})")
+    except Exception as e:
+        log(f"Error saving pill position: {e}")
 
 
 def reset_pill_position():
@@ -207,6 +229,10 @@ class DragApi:
             save_current_position()
             apply_all_regions(pad=1)
 
+    def stop_drag(self):
+        save_current_position()
+        apply_all_regions(pad=1)
+
     def reset_position(self):
         reset_pill_position()
         apply_all_regions(pad=1)
@@ -239,6 +265,8 @@ def apply_all_regions(pad=1):
     global phys_w, phys_h
     cur_hwnd = get_hwnd()
     if not cur_hwnd or phys_w <= 0 or phys_h <= 0:
+        return
+    if form and not form.Visible:
         return
 
     pad_int = int(pad)
@@ -345,6 +373,7 @@ def apply_overlay_styles():
         # 1. Configure Form & WebView2 background on UI thread FIRST
         def setup_form():
             form.ShowInTaskbar = False
+            form.TopMost = True
             form.SetStyle(WinForms.ControlStyles.SupportsTransparentBackColor, True)
             form.BackColor = Color.Transparent
             for c in form.Controls:
@@ -355,19 +384,11 @@ def apply_overlay_styles():
             form.Location = Point(pos_x, pos_y)
             form.Size = Size(phys_w, phys_h)
 
-            # Hook WinForms events to permanently re-apply capsule regions whenever
-            # the window moves, resizes, lays out, changes visibility, or recreates its handle.
-            form.HandleCreated += lambda s, e: (get_hwnd(), apply_dwm_borderless(), apply_all_regions(pad=1))
+            form.HandleCreated += lambda s, e: (get_hwnd(), apply_dwm_borderless())
             form.Resize += lambda s, e: apply_all_regions(pad=1)
             form.Move += lambda s, e: apply_all_regions(pad=1)
-            form.LocationChanged += lambda s, e: apply_all_regions(pad=1)
-            form.SizeChanged += lambda s, e: apply_all_regions(pad=1)
-            form.VisibleChanged += lambda s, e: apply_all_regions(pad=1)
-            form.Activated += lambda s, e: apply_all_regions(pad=1)
-            form.Layout += lambda s, e: apply_all_regions(pad=1)
-            form.Shown += lambda s, e: apply_all_regions(pad=1)
-
-            form.Hide()
+            form.ResizeEnd += lambda s, e: (save_current_position(), apply_all_regions(pad=1))
+            form.LocationChanged += lambda s, e: (save_current_position() if (form and form.Visible) else None)
 
         form.Invoke(System.Action(setup_form))
 
@@ -388,12 +409,6 @@ def apply_overlay_styles():
 
         # 6. OS-level capsule region with pad pixels (zero rectangular box, full colored border)
         apply_all_regions(pad=1)
-
-        # Position off-screen and hide initially
-        user32.SetWindowPos(
-            cur_hwnd, 0, -10000, -10000, 0, 0,
-            SWP_NOACTIVATE | SWP_NOSIZE | SWP_HIDEWINDOW | SWP_FRAMECHANGED
-        )
         user32.ShowWindow(cur_hwnd, SW_HIDE)
         log(f"True transparent styles applied with padded capsule clipping. HWND={cur_hwnd}, pos=({pos_x},{pos_y}), size=({phys_w},{phys_h})")
 
@@ -406,25 +421,27 @@ def do_show(state="listening"):
     update_placement()
     log(f"Showing pill (state={state}) at ({pos_x},{pos_y})")
 
-    apply_dwm_borderless()
+    def _show_form():
+        if form:
+            form.TopMost = True
+            form.Location = Point(pos_x, pos_y)
+            form.Size = Size(phys_w, phys_h)
+            form.Show()
+            form.BringToFront()
+            apply_dwm_borderless()
+            apply_all_regions(pad=1)
+
+    if form:
+        try:
+            form.Invoke(System.Action(_show_form))
+        except Exception as e:
+            log(f"Error in _show_form: {e}")
 
     user32.SetWindowPos(
         cur_hwnd, HWND_TOPMOST, pos_x, pos_y, phys_w, phys_h,
         SWP_NOACTIVATE | SWP_SHOWWINDOW
     )
     user32.ShowWindow(cur_hwnd, SW_SHOWNOACTIVATE)
-
-    def _show_form():
-        if form:
-            form.Show()
-            apply_all_regions(pad=1)
-
-    if form:
-        try:
-            form.Invoke(System.Action(_show_form))
-        except Exception:
-            pass
-
     apply_all_regions(pad=1)
 
     # Deferred re-assertion on UI thread to ensure region survives initial paint/layout passes
@@ -449,10 +466,6 @@ def do_hide():
 
     cur_hwnd = get_hwnd()
     if cur_hwnd:
-        user32.SetWindowPos(
-            cur_hwnd, 0, -10000, -10000, 0, 0,
-            SWP_NOACTIVATE | SWP_NOSIZE | SWP_HIDEWINDOW
-        )
         user32.ShowWindow(cur_hwnd, SW_HIDE)
 
     def _hide_form():
@@ -521,13 +534,15 @@ def main():
         min_size=(296, 56),
         frameless=True,
         transparent=True,
-        on_top=True
+        on_top=True,
+        hidden=True
     )
 
     t = threading.Thread(target=stdin_listener, daemon=True)
     t.start()
 
     webview.start(on_ready, gui="edgechromium")
+    os._exit(0)
 
 
 if __name__ == "__main__":

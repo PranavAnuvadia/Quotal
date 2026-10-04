@@ -315,6 +315,12 @@ pill.addEventListener('mousedown', (e) => {
   }
 });
 
+window.addEventListener('mouseup', () => {
+  if (window.pywebview && window.pywebview.api && window.pywebview.api.stop_drag) {
+    window.pywebview.api.stop_drag();
+  }
+});
+
 pill.addEventListener('dblclick', (e) => {
   if (e.button === 0 && window.pywebview && window.pywebview.api) {
     window.pywebview.api.reset_position();
