@@ -1,9 +1,11 @@
 """
 injector.py - Inserts text into the currently active Windows window via Ctrl+V.
-Uses Win32 SendInput for reliable, instantaneous keystroke injection.
+Uses Win32 SendInput for reliable, instantaneous keystroke injection with
+non-destructive clipboard restoration.
 """
 
 import time
+import threading
 import ctypes
 import pyperclip
 
@@ -61,10 +63,10 @@ def _send_ctrl_v():
     ctypes.windll.user32.SendInput(4, ctypes.byref(events), ctypes.sizeof(INPUT))
 
 
-def paste_text(text: str, restore_clipboard: bool = False, delay_ms: int = 40):
+def paste_text(text: str, restore_clipboard: bool = False, delay_ms: int = 15):
     """
     Copies text to clipboard and triggers Ctrl+V.
-    Optionally restores old clipboard contents after delay.
+    Leaves the dictated text in the clipboard so the user can paste it anywhere.
     """
     if not text:
         return
@@ -79,18 +81,22 @@ def paste_text(text: str, restore_clipboard: bool = False, delay_ms: int = 40):
     # Copy new text to clipboard
     pyperclip.copy(text)
     
-    # Brief pause so the OS clipboard registers the new content
+    # Brief pause so the OS clipboard registers the new content (15ms is optimal on Win32)
     time.sleep(delay_ms / 1000.0)
     
     # Inject Ctrl+V
     _send_ctrl_v()
 
+    # Asynchronously restore previous clipboard so user doesn't lose copied content
     if restore_clipboard and old_clip is not None:
         def _restore():
-            time.sleep(0.5)
+            time.sleep(0.35)
             try:
-                pyperclip.copy(old_clip)
+                # Only restore if clipboard still holds what we pasted.
+                # If the user copied something fresh in the meantime, preserve their new copy!
+                current = pyperclip.paste()
+                if current == text:
+                    pyperclip.copy(old_clip)
             except Exception:
                 pass
-        import threading
         threading.Thread(target=_restore, daemon=True).start()

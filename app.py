@@ -5,13 +5,12 @@ Includes Hardware Key Polling, Floating Overlay Pill, System Tray, Model Switche
 
 import sys
 import os
-import sys
-import os
 import time
 import threading
 import ctypes
 import winsound
 import subprocess
+import socket
 import io
 
 try:
@@ -119,20 +118,44 @@ class QuotalApp:
         model_key = self.settings.get("model_key", "base")
         model_cfg = settings_manager.MODEL_CONFIGS.get(model_key, settings_manager.MODEL_CONFIGS["base"])
 
+        self._lock = threading.Lock()
+        self.is_recording = False
+        self._meter_running = False
+        self._running = True
+
         # 1. Overlay Pill
         print("[App] Initializing Floating Pill...")
         self.overlay = OverlayPill()
         
-        # 2. Audio Recorder
+        # 2. Audio Recorder (persistent WASAPI stream)
         print("[App] Initializing Audio Recorder...")
         self.recorder = AudioRecorder(sample_rate=16000)
         
-        # 3. Transcriber (Starts with chosen model, default: Whisper Base on CPU)
-        print(f"[App] Loading model: {model_cfg['name']}...")
-        self.transcriber = Transcriber(
-            model_path=model_cfg["path"],
-            device=model_cfg["device"]
-        )
+        # 3. Transcriber (Loaded in background thread so app boots instantaneously)
+        self.transcriber = None
+        self.transcriber_ready = threading.Event()
+        self._model_gen = 1
+        boot_gen = self._model_gen
+
+        def _init_model_worker():
+            print(f"[App] Loading model in background: {model_cfg['name']}...")
+            try:
+                t = Transcriber(
+                    model_path=model_cfg["path"],
+                    device=model_cfg["device"]
+                )
+                with self._lock:
+                    if self._model_gen != boot_gen:
+                        t.unload()
+                        return
+                    self.transcriber = t
+                    self.transcriber_ready.set()
+                print(f"[App] Active Model Ready: {model_cfg['name']}")
+            except Exception as e:
+                print(f"[App Error] Failed to load model: {e}")
+                self.transcriber_ready.set()
+
+        threading.Thread(target=_init_model_worker, daemon=True).start()
         
         # If launched by user (not system startup background), open dashboard immediately
         start_silent = ("--silent" in sys.argv or "--background" in sys.argv)
@@ -146,11 +169,6 @@ class QuotalApp:
             on_quit=self.quit
         )
         self.tray.start()
-
-        self.is_recording = False
-        self._meter_running = False
-        self._lock = threading.Lock()
-        self._running = True
 
         print("\n" + "-" * 65)
         print(" ✅ READY! Quotal is active in your System Tray!")
@@ -166,6 +184,10 @@ class QuotalApp:
         if not cfg:
             return
 
+        with self._lock:
+            self._model_gen += 1
+            current_gen = self._model_gen
+
         def _loader():
             print(f"\n[App] Switching to {cfg['name']}...")
             try:
@@ -174,7 +196,14 @@ class QuotalApp:
                     device=cfg["device"]
                 )
                 with self._lock:
+                    if self._model_gen != current_gen:
+                        new_transcriber.unload()
+                        return
+                    old = self.transcriber
                     self.transcriber = new_transcriber
+                    self.transcriber_ready.set()
+                    if old:
+                        old.unload()
                 print(f"[App] Successfully switched to {cfg['name']}!\n")
             except Exception as e:
                 print(f"[App] Failed to switch model: {e}")
@@ -186,6 +215,15 @@ class QuotalApp:
         if not message:
             message = "show"
         if message == "show":
+            # Check if dashboard is already running on DASH_PORT (48292); if so, signal in < 1ms
+            try:
+                s = socket.create_connection(("127.0.0.1", 48292), timeout=0.25)
+                s.sendall(b"show\n")
+                s.close()
+                return
+            except Exception:
+                pass
+
             base_dir = os.path.dirname(os.path.abspath(__file__))
             script_path = os.path.join(base_dir, "dashboard_host.py")
             venv_quotal = os.path.join(base_dir, ".venv", "Scripts", "Quotal.exe")
@@ -196,7 +234,7 @@ class QuotalApp:
                 if not os.path.exists(exe_path):
                     exe_path = sys.executable
             
-            # Start dashboard_host.py. It will handle its own single-instance check
+            # Start dashboard_host.py only if not already running
             subprocess.Popen(
                 [exe_path, script_path],
                 creationflags=subprocess.CREATE_NO_WINDOW if "pythonw" in exe_path.lower() or "quotal" in exe_path.lower() else 0
@@ -266,8 +304,15 @@ class QuotalApp:
             if duration < 0.2:
                 return
 
-            # 1. Transcribe with local model
-            raw_text, elapsed = self.transcriber.transcribe(audio)
+            # 1. Transcribe with local model (ensuring background loader completed)
+            if hasattr(self, "transcriber_ready") and not self.transcriber_ready.is_set():
+                self.transcriber_ready.wait(timeout=15.0)
+            with self._lock:
+                transcriber = self.transcriber
+            if not transcriber:
+                return
+
+            raw_text, elapsed = transcriber.transcribe(audio)
             
             # 2. Hesitation cleanup (simple-voice deterministic engine)
             cleaned = clean_text(raw_text)
@@ -292,26 +337,23 @@ class QuotalApp:
                     latency_ms=elapsed * 1000.0
                 )
                 self._play_chime(1200, 40)
-                paste_text(cleaned)
-                print("📋 Pasted directly at cursor!")
+                paste_text(cleaned, restore_clipboard=False)
+                print("📋 Pasted directly at cursor & copied to clipboard!")
                 self.overlay.set_done()
-                time.sleep(0.4)
+                # Non-blocking auto-hide: free this worker thread immediately (0ms delay)
+                threading.Timer(0.35, lambda: self.overlay.hide()).start()
             else:
                 print("⚠️  No speech detected.")
+                self.overlay.hide()
         except Exception as err:
             print(f"[App Error] Transcription error: {err}")
             import traceback
             traceback.print_exc()
             try:
                 self.overlay.set_error()
+                threading.Timer(0.5, lambda: self.overlay.hide()).start()
             except Exception:
-                pass
-            time.sleep(0.5)
-        finally:
-            try:
                 self.overlay.hide()
-            except Exception:
-                pass
 
     def _key_poll_loop(self):
         """Hardware polling loop in dedicated worker thread."""
@@ -350,6 +392,11 @@ class QuotalApp:
         if self.overlay:
             try:
                 self.overlay.close()
+            except Exception:
+                pass
+        if hasattr(self, "recorder") and self.recorder:
+            try:
+                self.recorder.close()
             except Exception:
                 pass
         if hasattr(self, "single_instance") and self.single_instance:

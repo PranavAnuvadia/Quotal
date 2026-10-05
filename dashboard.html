@@ -75,11 +75,11 @@
 
   /* ---------- Main ---------- */
   main { overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
-  .scroll { overflow-y: auto; flex: 1; padding: 30px 40px 60px; scroll-behavior: smooth; }
+  .scroll { overflow-y: auto; flex: 1; padding: 0 40px 60px; scroll-behavior: smooth; }
   .scroll::-webkit-scrollbar { width: 10px; }
   .scroll::-webkit-scrollbar-thumb { background: rgba(236,233,225,.1); border-radius: 10px; border: 3px solid var(--bg); }
 
-  .view { display: none; max-width: 880px; margin: 0 auto; }
+  .view { display: none; max-width: 880px; margin: 0 auto; padding-top: 30px; }
   .view.active { display: block; }
   .view.active > * { animation: rise .4s ease both; }
   .view.active > *:nth-child(2) { animation-delay: .04s; }
@@ -125,22 +125,50 @@
   }
   .btn:hover { border-color: var(--line-2); background: #1a1a21; }
   .btn:active { transform: scale(.98); }
+  .btn.active { background: rgba(139,124,255,.16); border-color: rgba(139,124,255,.6); color: var(--ink); }
   .btn.danger:hover { color: var(--red); border-color: rgba(229,104,104,.4); }
   .btn svg { width: 14px; height: 14px; }
 
   /* ---------- History ---------- */
-  .day { display: flex; align-items: baseline; gap: 10px; margin: 22px 2px 0; padding: 8px 2px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; }
+  .day-group { margin-top: 18px; }
+  .day-group:first-child { margin-top: 4px; }
+  .day {
+    display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 2px 8px;
+    border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 10;
+  }
   .day span:first-child { font-size: 13px; font-weight: 650; }
   .day .n { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .day-del-btn {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--mono); font-size: 11px; color: var(--faint);
+    padding: 3px 8px; border-radius: 6px; border: 1px solid transparent;
+    cursor: pointer; background: transparent; transition: all .15s ease;
+  }
+  .day-del-btn svg { width: 12px; height: 12px; }
+  .day-del-btn:hover {
+    color: var(--red); background: rgba(229,104,104,.1); border-color: rgba(229,104,104,.35);
+  }
   .group { border-bottom: 1px solid var(--line); }
   .entry { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: start; padding: 13px 2px; }
   .entry + .entry { border-top: 1px solid var(--line); }
   .entry:hover { background: rgba(236,233,225,.015); }
+  .entry.in-select { grid-template-columns: 24px 64px 1fr auto; cursor: pointer; }
+  .entry.in-select:hover { background: rgba(236,233,225,.03); }
+  .entry-check { display: flex; align-items: center; justify-content: center; padding-top: 2px; }
+  .custom-check {
+    width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--faint);
+    display: grid; place-items: center; background: rgba(255,255,255,.03);
+    transition: all .15s ease; flex-shrink: 0;
+  }
+  .custom-check svg { width: 12px; height: 12px; color: #fff; opacity: 0; transform: scale(.6); transition: all .15s ease; }
+  .entry.checked .custom-check { background: var(--violet); border-color: var(--violet); }
+  .entry.checked .custom-check svg { opacity: 1; transform: scale(1); }
+  .entry.checked { background: rgba(139,124,255,.07); }
   .entry .time { font-family: var(--mono); font-size: 11.5px; color: var(--faint); padding-top: 3px; font-variant-numeric: tabular-nums; }
   .entry .text { line-height: 1.6; font-size: 14px; word-break: break-word; user-select: text; }
   .entry .text mark { background: rgba(139,124,255,.3); color: inherit; border-radius: 3px; }
   .entry .meta { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 5px; }
-  .entry .actions { opacity: 0; transition: opacity .15s; }
+  .entry .actions { display: flex; gap: 6px; align-items: center; opacity: 0; transition: opacity .15s; }
   .entry:hover .actions { opacity: 1; }
   .icon-btn {
     width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--line);
@@ -149,6 +177,31 @@
   .icon-btn:hover { color: var(--ink); border-color: var(--line-2); }
   .icon-btn svg { width: 14px; height: 14px; }
   .icon-btn.ok { color: var(--green); border-color: rgba(62,207,142,.45); }
+  .icon-btn.del-btn:hover { color: var(--red); border-color: rgba(229,104,104,.45); background: rgba(229,104,104,.08); }
+
+  /* Selection bar */
+  .selection-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--card); border: 1px solid rgba(139,124,255,.3); border-radius: 11px;
+    padding: 8px 14px; margin-top: 10px; animation: rise .2s ease both;
+  }
+  .sel-count-wrap { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+  .sel-count-badge {
+    display: inline-grid; place-items: center; min-width: 22px; height: 22px;
+    padding: 0 6px; border-radius: 99px; background: var(--violet); color: #fff;
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+  }
+  .sel-count-label { color: var(--muted); font-size: 12.5px; }
+  .sel-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sel-actions .btn-sm {
+    background: #191920; border: 1px solid var(--line); color: var(--ink);
+    font-family: var(--font); font-size: 12px; padding: 5px 12px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 6px; transition: all .15s;
+  }
+  .sel-actions .btn-sm:hover { background: #23232c; border-color: var(--line-2); }
+  .sel-actions .btn-sm.danger { color: #f0a3a3; border-color: rgba(229,104,104,.35); background: rgba(229,104,104,.1); }
+  .sel-actions .btn-sm.danger:hover:not(:disabled) { background: rgba(229,104,104,.22); border-color: rgba(229,104,104,.6); }
+  .sel-actions .btn-sm:disabled { opacity: .4; cursor: not-allowed; }
 
   .empty { padding: 64px 20px; text-align: center; border: 1px dashed var(--line-2); border-radius: var(--radius); margin-top: 22px; }
   .empty .big { font-size: 15px; font-weight: 650; margin-bottom: 6px; }
@@ -317,10 +370,29 @@
             <input id="q" placeholder="Search dictations…" spellcheck="false">
             <kbd>Ctrl K</kbd>
           </label>
+          <button class="btn" id="btn-select" title="Toggle selection mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Select
+          </button>
           <button class="btn danger" id="clear">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
             Clear
           </button>
+        </div>
+        <div class="selection-bar" id="selection-bar" style="display:none">
+          <div class="sel-count-wrap">
+            <span class="sel-count-badge" id="sel-count-num">0</span>
+            <span class="sel-count-label">selected</span>
+          </div>
+          <div class="sel-actions">
+            <button class="btn-sm" id="btn-sel-all">Select all</button>
+            <button class="btn-sm" id="btn-desel-all">Deselect all</button>
+            <button class="btn-sm danger" id="btn-del-selected" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+              Delete (<span id="btn-del-count">0</span>)
+            </button>
+            <button class="btn-sm" id="btn-sel-done">Done</button>
+          </div>
         </div>
         <div class="subbar"><span class="search-count" id="search-count"></span><span class="kb-hints">/ search &nbsp;·&nbsp; j/k move &nbsp;·&nbsp; enter copy</span></div>
         <div id="history"></div>
@@ -428,10 +500,14 @@
 const $ = s => document.querySelector(s);
 const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
 const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 let state = { history: [], mtime: 0, settings: {}, models: [], autostart: false };
 let api = null;
 let lastList = [], selIdx = -1;
+let selectMode = false;
+let selectedEpochs = new Set();
 
 // ---------- Navigation ----------
 document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => {
@@ -450,9 +526,12 @@ function toast(msg) {
 }
 
 // ---------- Confirm modal ----------
-function confirmModal() {
+function confirmModal(title = 'Clear all history?', desc = 'This permanently deletes every saved dictation on this device. It can\'t be undone.', okText = 'Delete all') {
   return new Promise(res => {
     const m = $('#modal');
+    m.querySelector('h4').textContent = title;
+    m.querySelector('p').textContent = desc;
+    m.querySelector('#m-ok').textContent = okText;
     m.classList.add('show');
     const done = v => { m.classList.remove('show'); $('#m-ok').onclick = $('#m-cancel').onclick = m.onclick = null; res(v); };
     $('#m-ok').onclick = () => done(true);
@@ -551,16 +630,64 @@ function renderHistory() {
   for (const e of list) {
     const d = parseTs(e.timestamp);
     const label = dayLabel(d);
+    const datePrefix = (e.timestamp || '').split(' ')[0];
     if (label !== curDay) {
       curDay = label;
+      const daySection = document.createElement('div'); daySection.className = 'day-group';
       const h = document.createElement('div'); h.className = 'day';
       h.innerHTML = '<span></span><span class="n"></span>';
       h.children[0].textContent = label;
       h.children[1].textContent = counts[label] + (counts[label] === 1 ? ' entry' : ' entries');
-      frag.appendChild(h);
-      group = document.createElement('div'); group.className = 'group'; frag.appendChild(group);
+
+      const dayDel = document.createElement('button');
+      dayDel.className = 'day-del-btn';
+      dayDel.title = `Delete all entries from ${label}`;
+      dayDel.innerHTML = `${ICON_TRASH}<span>Delete day</span>`;
+      dayDel.onclick = async ev => {
+        ev.stopPropagation();
+        const cnt = counts[label];
+        const ok = await confirmModal(
+          `Delete ${label}'s history?`,
+          `This will permanently delete ${cnt} dictation${cnt === 1 ? '' : 's'} from ${label}. It cannot be undone.`,
+          `Delete ${cnt} entries`
+        );
+        if (!ok) return;
+        const res = await api.delete_day(datePrefix);
+        if (res && res.history) {
+          state.history = res.history;
+          state.mtime = res.mtime;
+        } else {
+          state.history = state.history.filter(x => !(x.timestamp || '').startsWith(datePrefix));
+        }
+        renderStats();
+        renderHistory();
+        toast(`Deleted ${cnt} dictation${cnt === 1 ? '' : 's'}`);
+      };
+      h.appendChild(dayDel);
+
+      daySection.appendChild(h);
+      group = document.createElement('div'); group.className = 'group';
+      daySection.appendChild(group);
+      frag.appendChild(daySection);
     }
-    const row = document.createElement('div'); row.className = 'entry';
+
+    const row = document.createElement('div');
+    row.className = 'entry' + (selectMode ? ' in-select' : '');
+    const itemKey = e.epoch !== undefined ? e.epoch : e.timestamp;
+    if (selectMode && selectedEpochs.has(itemKey)) {
+      row.classList.add('checked');
+    }
+
+    if (selectMode) {
+      const checkWrap = document.createElement('div');
+      checkWrap.className = 'entry-check';
+      const box = document.createElement('div');
+      box.className = 'custom-check';
+      box.innerHTML = ICON_CHECK;
+      checkWrap.appendChild(box);
+      row.appendChild(checkWrap);
+    }
+
     const t = document.createElement('div'); t.className = 'time'; t.textContent = timeLabel(d); t.title = d.toLocaleString();
     const body = document.createElement('div');
     const txt = document.createElement('div'); txt.className = 'text';
@@ -570,14 +697,58 @@ function renderHistory() {
     const meta = document.createElement('div'); meta.className = 'meta';
     meta.textContent = `${w} ${w === 1 ? 'word' : 'words'} · ${dur.toFixed(1)}s · ${Math.round(e.latency_ms || 0)}ms${pace}`;
     body.append(txt, meta);
+
     const act = document.createElement('div'); act.className = 'actions';
     const b = document.createElement('button'); b.className = 'icon-btn'; b.title = 'Copy'; b.innerHTML = ICON_COPY;
-    b.onclick = () => copyEntry(e.cleaned || '', b);
-    row.ondblclick = ev => { if (!window.getSelection().toString()) copyEntry(e.cleaned || '', b); };
-    act.appendChild(b);
+    b.onclick = ev => {
+      ev.stopPropagation();
+      copyEntry(e.cleaned || '', b);
+    };
+
+    const del = document.createElement('button');
+    del.className = 'icon-btn del-btn';
+    del.title = 'Delete';
+    del.innerHTML = ICON_TRASH;
+    del.onclick = async ev => {
+      ev.stopPropagation();
+      const ok = await confirmModal(
+        'Delete dictation?',
+        'This will permanently delete this dictation entry. It cannot be undone.',
+        'Delete'
+      );
+      if (!ok) return;
+      const res = await api.delete_entry(e.epoch, e.timestamp);
+      if (res && res.history) {
+        state.history = res.history;
+        state.mtime = res.mtime;
+      } else {
+        state.history = state.history.filter(x => x.epoch !== e.epoch);
+      }
+      renderStats();
+      renderHistory();
+      toast('Dictation deleted');
+    };
+
+    row.ondblclick = ev => {
+      if (!window.getSelection().toString() && !selectMode) copyEntry(e.cleaned || '', b);
+    };
+    act.append(b, del);
     row.append(t, body, act);
     row.dataset.i = ri++;
-    row.onclick = () => selectEntry(parseInt(row.dataset.i, 10), false);
+    row.onclick = () => {
+      if (selectMode) {
+        if (selectedEpochs.has(itemKey)) {
+          selectedEpochs.delete(itemKey);
+          row.classList.remove('checked');
+        } else {
+          selectedEpochs.add(itemKey);
+          row.classList.add('checked');
+        }
+        updateSelectionBar();
+      } else {
+        selectEntry(parseInt(row.dataset.i, 10), false);
+      }
+    };
     group.appendChild(row);
   }
   root.appendChild(frag);
@@ -645,13 +816,18 @@ function renderLlmStatus() {
   const btn = $('#llm-dl-btn');
   if (!txt || !btn) return;
   if (st.downloaded) {
-    txt.innerHTML = '<span style="color:var(--green)">● Ready</span> — Qwen 2.5 0.5B installed (' + (st.size_mb || '942') + ' MB)';
-    btn.style.display = 'none';
+    if (st.ready) {
+      txt.innerHTML = '<span style="color:var(--green)">● Ready</span> — Qwen 2.5 0.5B (GPU accelerated)';
+      btn.style.display = 'none';
+    } else {
+      txt.innerHTML = '<span style="color:var(--amber)">● Unavailable</span> — GPU acceleration required; using Instant Fast rules';
+      btn.style.display = 'none';
+    }
   } else if (st.downloading) {
     txt.innerHTML = '<span style="color:var(--violet)">↓ Downloading…</span> ' + (st.size_mb ? st.size_mb + ' / ' + st.total_mb + ' MB' : '');
     btn.style.display = 'none';
   } else {
-    txt.textContent = 'Not installed · ' + (st.total_mb || '940') + ' MB one-time download';
+    txt.textContent = 'Not installed · ' + (st.total_mb || '940') + ' MB download (Instant Fast recommended)';
     btn.style.display = 'inline-block';
     btn.onclick = async (e) => {
       e.stopPropagation();
@@ -674,7 +850,11 @@ function renderSettings() {
       document.querySelectorAll('.enh').forEach(c => c.classList.toggle('active', c === card));
       await api.set_setting('enhancer_mode', mode);
       await api.set_setting('ai_enhance', mode !== 'off');
-      toast(`Enhancement: ${card.querySelector('.enh-title').firstChild.textContent.trim()}`);
+      if (mode === 'llm' && !(state.llm_status && state.llm_status.ready)) {
+        toast('GPU LLM unavailable — using Instant Fast rules');
+      } else {
+        toast(`Enhancement: ${card.querySelector('.enh-title').firstChild.textContent.trim()}`);
+      }
       renderLlmStatus();
     };
   });
@@ -707,6 +887,25 @@ function renderSettings() {
   };
 }
 
+// ---------- Selection Mode ----------
+function updateSelectionBar() {
+  const count = selectedEpochs.size;
+  $('#sel-count-num').textContent = count;
+  $('#btn-del-count').textContent = count;
+  $('#btn-del-selected').disabled = (count === 0);
+}
+
+function toggleSelectMode(force) {
+  selectMode = (typeof force === 'boolean') ? force : !selectMode;
+  $('#btn-select').classList.toggle('active', selectMode);
+  $('#selection-bar').style.display = selectMode ? 'flex' : 'none';
+  if (!selectMode) {
+    selectedEpochs.clear();
+  }
+  updateSelectionBar();
+  renderHistory();
+}
+
 // ---------- Wiring ----------
 let searchTimer;
 $('#q').addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderHistory, 80); });
@@ -720,6 +919,10 @@ document.addEventListener('keydown', e => {
   const inModal = $('#modal').classList.contains('show');
   const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
   if (e.key === 'Escape') {
+    if (selectMode) {
+      toggleSelectMode(false);
+      return;
+    }
     if (document.activeElement === $('#q')) { $('#q').value = ''; renderHistory(); $('#q').blur(); }
     selectEntry(-1, false);
     return;
@@ -737,8 +940,30 @@ document.addEventListener('keydown', e => {
   } else if (home && (e.key === 'ArrowDown' || e.key === 'j')) { e.preventDefault(); selectEntry(selIdx + 1); }
   else if (home && (e.key === 'ArrowUp' || e.key === 'k')) { e.preventDefault(); selectEntry(selIdx - 1); }
   else if (home && (e.key === 'Enter' || e.key === 'c') && selIdx >= 0 && lastList[selIdx]) {
-    const btns = document.querySelectorAll('#history .icon-btn');
-    copyEntry(lastList[selIdx].cleaned || '', btns[selIdx]);
+    const row = document.querySelector(`#history .entry[data-i="${selIdx}"]`);
+    const btn = row ? row.querySelector('.icon-btn') : null;
+    copyEntry(lastList[selIdx].cleaned || '', btn);
+  } else if (home && (e.key === 'Delete' || e.key === 'Backspace') && selIdx >= 0 && lastList[selIdx] && !selectMode) {
+    e.preventDefault();
+    const entryToDelete = lastList[selIdx];
+    (async () => {
+      const ok = await confirmModal(
+        'Delete dictation?',
+        'This will permanently delete this dictation entry. It cannot be undone.',
+        'Delete'
+      );
+      if (!ok) return;
+      const res = await api.delete_entry(entryToDelete.epoch, entryToDelete.timestamp);
+      if (res && res.history) {
+        state.history = res.history;
+        state.mtime = res.mtime;
+      } else {
+        state.history = state.history.filter(x => x.epoch !== entryToDelete.epoch);
+      }
+      renderStats();
+      renderHistory();
+      toast('Dictation deleted');
+    })();
   }
 });
 
@@ -751,6 +976,54 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
   t.click();
 });
+
+$('#btn-select').addEventListener('click', () => toggleSelectMode());
+
+$('#btn-sel-all').addEventListener('click', () => {
+  for (const e of lastList) {
+    const key = e.epoch !== undefined ? e.epoch : e.timestamp;
+    selectedEpochs.add(key);
+  }
+  document.querySelectorAll('#history .entry').forEach(r => r.classList.add('checked'));
+  updateSelectionBar();
+});
+
+$('#btn-desel-all').addEventListener('click', () => {
+  selectedEpochs.clear();
+  document.querySelectorAll('#history .entry').forEach(r => r.classList.remove('checked'));
+  updateSelectionBar();
+});
+
+$('#btn-sel-done').addEventListener('click', () => {
+  toggleSelectMode(false);
+});
+
+$('#btn-del-selected').addEventListener('click', async () => {
+  const count = selectedEpochs.size;
+  if (!count) return;
+  const ok = await confirmModal(
+    `Delete ${count} dictation${count === 1 ? '' : 's'}?`,
+    `This will permanently delete the ${count} selected dictation${count === 1 ? '' : 's'}. It cannot be undone.`,
+    `Delete ${count} entries`
+  );
+  if (!ok) return;
+  const listToDelete = Array.from(selectedEpochs);
+  const res = await api.delete_entries(listToDelete);
+  if (res && res.history) {
+    state.history = res.history;
+    state.mtime = res.mtime;
+  } else {
+    const set = new Set(listToDelete);
+    state.history = state.history.filter(e => !set.has(e.epoch) && !set.has(e.timestamp));
+  }
+  selectedEpochs.clear();
+  updateSelectionBar();
+  toggleSelectMode(false);
+  renderStats();
+  renderHistory();
+  toast(`Deleted ${count} dictation${count === 1 ? '' : 's'}`);
+});
+
 $('#clear').addEventListener('click', async () => {
   if (!state.history.length) return;
   if (!(await confirmModal())) return;
@@ -761,7 +1034,17 @@ $('#clear').addEventListener('click', async () => {
 async function poll() {
   try {
     const r = await api.poll(state.mtime);
-    if (r.changed) { state.mtime = r.mtime; state.history = r.history; renderStats(); renderHistory(); }
+    if (r.changed) {
+      state.mtime = r.mtime;
+      state.history = r.history;
+      if (selectMode) {
+        const curKeys = new Set(state.history.map(e => e.epoch !== undefined ? e.epoch : e.timestamp));
+        for (const k of selectedEpochs) { if (!curKeys.has(k)) selectedEpochs.delete(k); }
+        updateSelectionBar();
+      }
+      renderStats();
+      renderHistory();
+    }
     if (r.llm_status) { state.llm_status = r.llm_status; renderLlmStatus(); }
   } catch (e) {}
   setTimeout(poll, 1200);

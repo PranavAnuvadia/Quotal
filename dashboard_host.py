@@ -88,7 +88,7 @@ class Api:
     def poll(self, mtime):
         m = _history_mtime()
         llm = smart_enhancer.get_llm_status()
-        if m != mtime or llm.get("downloading"):
+        if m != mtime:
             return {
                 "changed": True,
                 "mtime": m,
@@ -111,7 +111,37 @@ class Api:
 
     def clear_history(self):
         history_manager.clear_history()
-        return True
+        return {
+            "success": True,
+            "history": [],
+            "mtime": _history_mtime()
+        }
+
+    def delete_entry(self, epoch=None, timestamp=None):
+        ok = history_manager.delete_entry(epoch=epoch, timestamp=timestamp)
+        return {
+            "success": ok,
+            "history": history_manager.get_recent(limit=200),
+            "mtime": _history_mtime()
+        }
+
+    def delete_entries(self, epochs):
+        count = history_manager.delete_entries(epochs or [])
+        return {
+            "success": count > 0,
+            "count": count,
+            "history": history_manager.get_recent(limit=200),
+            "mtime": _history_mtime()
+        }
+
+    def delete_day(self, date_prefix):
+        count = history_manager.delete_day(date_prefix)
+        return {
+            "success": count > 0,
+            "count": count,
+            "history": history_manager.get_recent(limit=200),
+            "mtime": _history_mtime()
+        }
 
     def set_setting(self, key, value):
         s = settings_manager.load_settings()

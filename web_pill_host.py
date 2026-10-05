@@ -53,6 +53,7 @@ import System.Windows.Forms as WinForms
 from System.Drawing import Color, Point, Size, Region
 from System.Drawing.Drawing2D import GraphicsPath
 
+import settings_manager
 from settings_manager import load_settings, save_settings
 
 HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pill.html")
@@ -126,6 +127,27 @@ phys_w = 0
 phys_h = 0
 
 
+_cached_settings = None
+_cached_settings_mtime = 0.0
+_last_saved_coords = None
+
+
+def get_settings():
+    """Returns cached settings in memory, refreshing only when settings.json changes on disk."""
+    global _cached_settings, _cached_settings_mtime
+    try:
+        if os.path.exists(settings_manager.SETTINGS_FILE):
+            mt = os.path.getmtime(settings_manager.SETTINGS_FILE)
+            if _cached_settings is None or mt != _cached_settings_mtime:
+                _cached_settings = load_settings()
+                _cached_settings_mtime = mt
+    except Exception:
+        pass
+    if _cached_settings is None:
+        _cached_settings = load_settings()
+    return _cached_settings
+
+
 def update_placement():
     global pos_x, pos_y, phys_w, phys_h
     user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(work_rect), 0)
@@ -136,7 +158,7 @@ def update_placement():
         phys_w = int(pill_css_w * 1.25)
         phys_h = int(pill_css_h * 1.25)
 
-    settings = load_settings()
+    settings = get_settings()
     custom_x = settings.get("pill_x")
     custom_y = settings.get("pill_y")
 
@@ -151,8 +173,8 @@ def update_placement():
 
 
 def save_current_position():
-    """Saves user's dragged position to settings.json using real-time OS coordinates."""
-    global pos_x, pos_y
+    """Saves user's dragged position to settings.json using real-time OS coordinates on drag completion."""
+    global pos_x, pos_y, _last_saved_coords, _cached_settings, _cached_settings_mtime
     cur_hwnd = get_hwnd()
     if not cur_hwnd:
         return
@@ -164,6 +186,9 @@ def save_current_position():
             if cur_x > -500 and cur_y > -500:
                 pos_x = cur_x
                 pos_y = cur_y
+                if _last_saved_coords == (cur_x, cur_y):
+                    return  # Coordinate unchanged, skip disk I/O
+                _last_saved_coords = (cur_x, cur_y)
                 if form:
                     try:
                         def _sync():
@@ -174,10 +199,14 @@ def save_current_position():
                             _sync()
                     except Exception:
                         pass
-                settings = load_settings()
+                settings = get_settings()
                 settings["pill_x"] = cur_x
                 settings["pill_y"] = cur_y
                 save_settings(settings)
+                try:
+                    _cached_settings_mtime = os.path.getmtime(settings_manager.SETTINGS_FILE)
+                except Exception:
+                    pass
                 log(f"Saved custom pill position from GetWindowRect: ({cur_x}, {cur_y})")
     except Exception as e:
         log(f"Error saving pill position: {e}")
@@ -385,10 +414,7 @@ def apply_overlay_styles():
             form.Size = Size(phys_w, phys_h)
 
             form.HandleCreated += lambda s, e: (get_hwnd(), apply_dwm_borderless())
-            form.Resize += lambda s, e: apply_all_regions(pad=1)
-            form.Move += lambda s, e: apply_all_regions(pad=1)
             form.ResizeEnd += lambda s, e: (save_current_position(), apply_all_regions(pad=1))
-            form.LocationChanged += lambda s, e: (save_current_position() if (form and form.Visible) else None)
 
         form.Invoke(System.Action(setup_form))
 
@@ -419,7 +445,6 @@ def do_show(state="listening"):
     if not win or not cur_hwnd:
         return
     update_placement()
-    log(f"Showing pill (state={state}) at ({pos_x},{pos_y})")
 
     def _show_form():
         if form:
@@ -428,12 +453,13 @@ def do_show(state="listening"):
             form.Size = Size(phys_w, phys_h)
             form.Show()
             form.BringToFront()
-            apply_dwm_borderless()
-            apply_all_regions(pad=1)
 
     if form:
         try:
-            form.Invoke(System.Action(_show_form))
+            if form.InvokeRequired:
+                form.BeginInvoke(System.Action(_show_form))
+            else:
+                _show_form()
         except Exception as e:
             log(f"Error in _show_form: {e}")
 
@@ -443,16 +469,6 @@ def do_show(state="listening"):
     )
     user32.ShowWindow(cur_hwnd, SW_SHOWNOACTIVATE)
     apply_all_regions(pad=1)
-
-    # Deferred re-assertion on UI thread to ensure region survives initial paint/layout passes
-    if form:
-        def _deferred_reapply():
-            time.sleep(0.04)
-            try:
-                form.BeginInvoke(System.Action(lambda: apply_all_regions(pad=1)))
-            except Exception:
-                pass
-        threading.Thread(target=_deferred_reapply, daemon=True).start()
 
     try:
         win.evaluate_js(f"window.setState('{state}')")

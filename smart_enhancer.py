@@ -8,7 +8,9 @@ Combines:
 """
 
 import os
+import sys
 import re
+import functools
 import threading
 import subprocess
 from typing import Optional
@@ -203,10 +205,46 @@ def is_llm_downloaded() -> bool:
     return False
 
 
+@functools.lru_cache(maxsize=1)
+def _check_torch_cuda() -> bool:
+    """Check if PyTorch has CUDA available, cached at module level to avoid ~4s import stall."""
+    try:
+        if "torch" in sys.modules:
+            import torch
+            return bool(torch.cuda.is_available())
+        # Fast path: inspect torch version without triggering heavy ~4s C-extension load
+        import importlib.util
+        spec = importlib.util.find_spec("torch")
+        if spec and spec.origin:
+            vfile = os.path.join(os.path.dirname(spec.origin), "version.py")
+            if os.path.exists(vfile):
+                with open(vfile, "r", encoding="utf-8") as f:
+                    vcontent = f.read()
+                if "cuda = None" in vcontent or "cuda: Optional[str] = None" in vcontent:
+                    return False
+        import torch
+        return bool(torch.cuda.is_available())
+    except Exception:
+        return False
+
+
+_is_torch_cuda_available = _check_torch_cuda
+
+
+def is_llm_ready_for_gpu() -> bool:
+    """Check if Qwen model is ready with GPU acceleration (CTranslate2 or PyTorch CUDA)."""
+    if os.path.exists(os.path.join(CT2_DIR, "model.bin")):
+        return True
+    if is_llm_downloaded():
+        return _check_torch_cuda()
+    return False
+
+
 def get_llm_status() -> dict:
     """Return download status and file size for UI."""
     global _is_downloading, _download_progress
     downloaded = is_llm_downloaded()
+    ready = is_llm_ready_for_gpu()
     target = os.path.join(MODEL_DIR, "model.safetensors")
     size_mb = 0
     if os.path.exists(target):
@@ -216,6 +254,7 @@ def get_llm_status() -> dict:
             pass
     return {
         "downloaded": downloaded,
+        "ready": ready,
         "downloading": _is_downloading,
         "size_mb": size_mb,
         "total_mb": 942.3,
@@ -285,15 +324,21 @@ def load_llm_model():
         try:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
-            torch.set_num_threads(4)  # Prevent CPU thread thrashing
+            threads = max(1, min(4, (os.cpu_count() or 4) // 2))
+            torch.set_num_threads(threads)
 
-            print("[SmartEnhancer] Loading Qwen 2.5 0.5B PyTorch...")
+            has_cuda = torch.cuda.is_available()
+            if not has_cuda:
+                print("[SmartEnhancer] Notice: PyTorch CUDA is not available. Instant Fast rules mode is recommended for real-time dictation.")
+                return None, None
+
+            print("[SmartEnhancer] Loading Qwen 2.5 0.5B PyTorch on CUDA...")
             _llm_tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
             _llm_model = AutoModelForCausalLM.from_pretrained(
                 MODEL_DIR,
-                torch_dtype=torch.float32,
+                torch_dtype=torch.float16,
                 low_cpu_mem_usage=True
-            )
+            ).to("cuda")
             _llm_model.eval()
             print("[SmartEnhancer] Qwen 0.5B PyTorch ready!")
             return _llm_model, _llm_tokenizer
