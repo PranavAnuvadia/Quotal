@@ -5,6 +5,8 @@
   "enhancer_mode": "rules",
   "strip_hesitations": true,
   "audio_chimes": true,
-  "pill_x": 862,
-  "pill_y": 932
+  "pill_x": 683,
+  "pill_y": 743,
+  "pill_style": "wispr",
+  "theme": "dark"
 }

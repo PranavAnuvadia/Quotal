@@ -47,16 +47,81 @@
   }
   @keyframes enter { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Orb */
+  /* ---------- Left visual slot (40px, theme decides what lives here) ---------- */
+  .viz { position: relative; flex-shrink: 0; width: 40px; height: 40px; }
+  .viz > * { display: none; }
+  .pill[data-pill="orb"]   .orb { display: block; }
+  .pill[data-pill="ember"] .pulseviz { display: block; }
+  .pill[data-pill="meter"] .meterviz { display: flex; }
+  .pill[data-pill="halo"]  .haloviz { display: block; }
+  .pill[data-pill="bloom"] .bloomviz { display: block; }
+
+  /* Bloom: orb-only mode — no capsule, no text, just the living orb */
+  .pill[data-pill="bloom"] {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    overflow: visible;
+  }
+  .pill[data-pill="bloom"] .viz { width: 100%; height: 100%; }
+  .pill[data-pill="bloom"] .text,
+  .pill[data-pill="bloom"] .slot { display: none !important; }
+  .bloomviz { position: relative; width: 100%; height: 100%; }
+  .bloomviz canvas { width: 100%; height: 100%; display: block; }
+
+  /* Orb (default Aura theme) */
   .orb {
     --lvl: 0;
-    position: relative; flex-shrink: 0;
+    position: relative;
     width: 40px; height: 40px; border-radius: 50%;
     box-shadow:
       0 0 0 1px rgba(255,255,255,.14),
       0 0 calc(8px + var(--lvl) * 20px) color-mix(in srgb, var(--accent) 70%, transparent);
   }
   .orb canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }
+
+  /* Ember: breathing ember dot + orbiting satellite */
+  .pulseviz { position: relative; width: 40px; height: 40px; }
+  .pulseviz .core {
+    position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff8, var(--accent) 55%, color-mix(in srgb, var(--accent) 60%, #000));
+    box-shadow: 0 0 12px var(--accent), 0 0 3px #fff8;
+    transform: translate(-50%, -50%);
+  }
+  .pulseviz .orbit {
+    position: absolute; inset: 2px; border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    animation: spin 3.2s linear infinite;
+  }
+  .pulseviz .orbit::after {
+    content: ""; position: absolute; left: 50%; top: -2.5px; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 6px var(--accent); transform: translateX(-50%);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Meter: 5 chunky live bars */
+  .meterviz { width: 40px; height: 40px; align-items: center; justify-content: center; gap: 4px; }
+  .meterviz .mbar {
+    width: 5px; height: 100%; border-radius: 9999px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #fff), var(--accent));
+    transform: scaleY(.25); will-change: transform;
+    box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  /* Halo: rotating arc ring + level-reactive center dot */
+  .haloviz { position: relative; width: 40px; height: 40px; }
+  .haloviz svg.ring { position: absolute; inset: 0; width: 40px; height: 40px; animation: spin 2.6s linear infinite; }
+  .haloviz svg.ring .track { fill: none; stroke: rgba(255,255,255,.12); stroke-width: 3; }
+  .haloviz svg.ring .arc { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--accent)); }
+  .haloviz .cdot {
+    position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 10px var(--accent);
+    transform: translate(-50%, -50%);
+  }
 
   /* Text */
   .text { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
@@ -74,6 +139,15 @@
     animation: shimmer 1.6s linear infinite;
   }
   @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* Meter + Orbit are compact: no waveform tail, tighter capsule.
+     Meter is a one-liner (no sub-text) so it never feels cramped. */
+  .pill[data-pill="meter"] .slot,
+  .pill[data-pill="halo"] .slot { display: none; }
+  .pill[data-pill="meter"] .sub { display: none; }
+  .pill[data-pill="meter"] .text { justify-content: center; }
+  .pill[data-pill="meter"],
+  .pill[data-pill="halo"] { padding-right: 15px; }
 
   /* Right slot: waveform / check */
   .slot {
@@ -106,14 +180,28 @@
   .pill[data-state="done"] .timer, .pill[data-state="error"] .timer { opacity: 0; }
 
   @media (prefers-reduced-motion: reduce) {
-    .pill, .pop, .title { animation: none !important; }
+    .pill, .pop, .title, .orbit, .ring { animation: none !important; }
   }
 </style>
 </head>
 <body>
 
-<div class="pill" id="pill" data-state="listening">
-  <div class="orb" id="orb-box"><canvas id="orb-canvas"></canvas></div>
+<div class="pill" id="pill" data-state="listening" data-pill="bloom">
+  <div class="viz">
+    <div class="orb" id="orb-box"><canvas id="orb-canvas"></canvas></div>
+    <div class="pulseviz"><div class="orbit"></div><div class="core" id="ember-core"></div></div>
+    <div class="meterviz" id="meterviz">
+      <div class="mbar"></div><div class="mbar"></div><div class="mbar"></div><div class="mbar"></div><div class="mbar"></div>
+    </div>
+    <div class="haloviz">
+      <svg class="ring" viewBox="0 0 40 40">
+        <circle class="track" cx="20" cy="20" r="17"/>
+        <circle class="arc" cx="20" cy="20" r="17" stroke-dasharray="32 75" stroke-dashoffset="0" transform="rotate(-90 20 20)"/>
+      </svg>
+      <div class="cdot" id="halo-dot"></div>
+    </div>
+    <div class="bloomviz"><canvas id="bloom-canvas"></canvas></div>
+  </div>
 
   <div class="text">
     <div class="title-row">
@@ -139,7 +227,7 @@
 </div>
 
 <script>
-// ---------- WebGL fluid orb ----------
+// ---------- WebGL fluid orb (Aura theme only) ----------
 const VERT = `
 attribute vec2 a_pos;
 void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }
@@ -221,13 +309,28 @@ if (gl) {
   canvas.style.background = 'radial-gradient(circle at 35% 30%, #fff, var(--accent))';
 }
 
+// ---------- Pill themes ----------
+const THEMES = {
+  /*
+  orb:   { listening: '#3b82f6' },
+  ember: { listening: '#f59e0b' },
+  meter: { listening: '#22d3ee' },
+  halo:  { listening: '#c084fc' },
+  */
+  bloom: { listening: '#38e1ff' },
+};
+// let pillTheme = 'orb';
+let pillTheme = 'bloom';
+
 // ---------- State ----------
 const STATES = {
-  listening:    { title: 'Listening',      sub: 'Release key to paste', color: '#3b82f6' },
+  listening:    { title: 'Listening',      sub: 'Release key to paste', color: null },
   transcribing: { title: 'Enhancing text', sub: 'AI polishing',         color: '#a855f7' },
   done:         { title: 'Pasted',         sub: 'Done',                 color: '#10b981' },
   error:        { title: 'Failed',         sub: 'Try again',            color: '#f43f5e' },
 };
+// function listeningColor() { return (THEMES[pillTheme] || THEMES.orb).listening; }
+function listeningColor() { return (THEMES[pillTheme] || THEMES.bloom).listening; }
 
 const pill = document.getElementById('pill');
 const orbBox = document.getElementById('orb-box');
@@ -235,9 +338,12 @@ const titleEl = document.getElementById('status-title');
 const subEl = document.getElementById('status-sub');
 const timerEl = document.getElementById('timer');
 const bars = [...document.querySelectorAll('.bar')];
+const mbars = [...document.querySelectorAll('.mbar')];
+const emberCore = document.getElementById('ember-core');
+const haloDot = document.getElementById('halo-dot');
 
 let state = 'listening';
-let rgb = hexToRgb(STATES.listening.color);
+let rgb = hexToRgb(listeningColor());
 let targetRgb = rgb.slice();
 let targetLevel = 0.1, level = 0.1;
 let orbTime = 0, last = performance.now();
@@ -250,6 +356,366 @@ function fmt(ms) {
   return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 }
 
+// ---------- Orbloom engine (5th visual: Bloom, orb-only) ----------
+// Faithful port of https://github.com/rickybharti/orbloom — analytical-sphere
+// WebGL orb, single baked variant (core-teal-01), no dependencies.
+const BLOOM_VERT = `
+attribute vec2 aPosition;
+attribute vec2 aTextureCoord;
+varying vec2 vUv;
+void main() { vUv = aTextureCoord; gl_Position = vec4(aPosition, 0.0, 1.0); }
+`;
+const BLOOM_FRAG = `
+precision highp float;
+varying vec2 vUv;
+uniform vec2 uResolution;
+uniform vec3 uInteriorColor;
+uniform vec3 uBaseColor;
+uniform vec3 uAccentPrimary;
+uniform vec3 uAccentSecondary;
+uniform vec3 uAccentHighlight;
+uniform float uTime;
+uniform float uSeed;
+uniform float uAudioBrightness;
+uniform float uAudioPulse;
+uniform float uSpin;
+uniform float uArchetype;
+uniform float uGlass;
+uniform float uVisualIntensity;
+uniform float uDetail;
+uniform float uGlow;
+uniform float uState;
+uniform float uStateBlend;
+float scalarHash(float value) { return fract(sin(value * 127.1) * 43758.5453); }
+vec4 sampleSky(vec3 direction, float time) {
+  float longitude = atan(direction.z, direction.x);
+  float latitude = asin(clamp(direction.y, -1.0, 1.0));
+  float varianceA = fract(uSeed * 7.13);
+  float varianceB = fract(uSeed * 3.71);
+  float varianceC = fract(uSeed * 5.37);
+  float type = uArchetype >= 0.0 ? uArchetype : floor(fract(uSeed * 9.73) * 4.0);
+  float nebulaType = step(0.5, type) * (1.0 - step(1.5, type));
+  float coreType = step(1.5, type) * (1.0 - step(2.5, type));
+  float deepType = step(2.5, type);
+  float planeOffset = latitude
+    + (0.15 + 0.4 * varianceA) * sin(longitude * (1.0 + floor(varianceB * 2.0)) + 1.3)
+    + 0.12 * sin(longitude * 3.0 + time * 0.1);
+  float band = exp(-planeOffset * planeOffset * (5.0 + 10.0 * varianceC));
+  band = mix(band, max(band, 0.8), nebulaType);
+  band *= 1.0 - 0.85 * deepType;
+  float waveA = sin(longitude * 2.0 + sin(latitude * 3.0 + time * 0.25) * 1.6 + time * 0.15);
+  float waveB = sin(longitude * 5.0 - sin(latitude * 4.0 - time * 0.2) * 1.2 - time * 0.22 + 2.4);
+  float cloud = pow(0.5 + 0.5 * waveA, 2.0) * (0.45 + 0.55 * pow(0.5 + 0.5 * waveB, 2.0));
+  float dustLane = pow(0.5 + 0.5 * sin(longitude * 4.0 + latitude * 7.0 + sin(longitude * 2.0) * 2.0), 3.0);
+  float galaxy = clamp(band * cloud * (1.0 - dustLane * (0.55 + 0.35 * varianceB)), 0.0, 1.0);
+  vec3 paletteHue = mix(
+    mix(uAccentPrimary, uAccentSecondary, varianceA),
+    mix(uAccentSecondary, uAccentHighlight, varianceC),
+    0.5 + 0.5 * sin(longitude + latitude * 2.0 - time * 0.2)
+  );
+  vec3 greyHue = vec3(dot(paletteHue, vec3(0.299, 0.587, 0.114)));
+  paletteHue = clamp(greyHue + (paletteHue - greyHue) * 1.45, 0.0, 1.0);
+  vec3 dustColor = mix(vec3(0.72, 0.78, 0.92), paletteHue, 0.45 + 0.3 * varianceA + 0.45 * nebulaType);
+  vec3 color = dustColor * galaxy * (0.6 + 0.9 * nebulaType);
+  float shear = sin(longitude * 13.0 + latitude * 4.0 - time * 0.35) * sin(longitude * 5.0 + time * 0.2);
+  color += dustColor * band * cloud * max(shear, 0.0) * 0.14;
+  float secondPlane = latitude - (0.35 + 0.25 * varianceB) * sin(longitude * 2.0 - 1.1) + 0.4;
+  float secondArm = exp(-secondPlane * secondPlane * 7.0) * cloud;
+  color += mix(dustColor, uAccentSecondary, 0.35) * secondArm * 0.2;
+  vec3 ambientColor = mix(vec3(0.04, 0.03, 0.1),
+    mix(uAccentPrimary, mix(uAccentSecondary, uAccentHighlight, varianceC), varianceA) * 0.22, 0.75);
+  color += ambientColor * (0.5 + 0.22 * sin(time * 0.4 + longitude)) * (0.4 + 0.6 * band);
+  color += vec3(1.0, 0.88, 0.68) * pow(band, 4.0) * pow(cloud, 2.0) * 0.4;
+  float coreAngle = varianceB * 6.28318;
+  vec3 coreDirection = normalize(vec3(cos(coreAngle) * 0.85, 0.6 * (varianceC - 0.5), sin(coreAngle) * 0.85));
+  float bulge = max(dot(direction, coreDirection), 0.0);
+  color += mix(vec3(1.0, 0.85, 0.6), uAccentHighlight, 0.25) * (pow(bulge, 14.0) * 1.6 + pow(bulge, 4.0) * 0.5) * coreType;
+  float pocketA = pow(cloud, 5.0) * band * (0.7 + 0.3 * sin(time * 0.6 + longitude * 3.0));
+  color += mix(uAccentHighlight, uAccentPrimary, fract(varianceA + 0.5 * sin(longitude * 2.0) + 0.5)) * pocketA * (0.5 + 0.4 * varianceB + 0.8 * nebulaType);
+  float pocketB = pow(0.5 + 0.5 * sin(longitude * 3.0 + latitude * 4.0 - time * 0.18 + 2.0), 6.0) * band;
+  color += mix(uAccentSecondary, uAccentHighlight, varianceC) * pocketB * (0.25 + 0.3 * varianceA + 0.5 * nebulaType);
+  float detail = smoothstep(90.0, 200.0, uResolution.y) * uDetail;
+  vec2 grainGrid = vec2(longitude, latitude) * 34.0;
+  vec2 grainCell = floor(grainGrid);
+  vec2 grainLocal = fract(grainGrid);
+  float grainHash = scalarHash(grainCell.x * 3.7 + grainCell.y * 11.3);
+  vec2 grainPoint = vec2(0.2 + 0.6 * scalarHash(grainHash * 91.0), 0.2 + 0.6 * scalarHash(grainHash * 47.0));
+  float grainDistance = length((grainLocal - grainPoint) * vec2(cos(latitude), 1.0));
+  float resolutionFactor = clamp(uResolution.y / 420.0, 0.22, 1.0);
+  float grain = exp(-grainDistance * grainDistance * 700.0 * resolutionFactor) * step(0.3, grainHash) * (0.15 + 0.85 * band);
+  color += vec3(0.88, 0.9, 1.0) * grain * 0.4 * detail;
+  float coverage = clamp(galaxy * 0.7 + pow(band, 4.0) * 0.25, 0.0, 1.0);
+  for (int scaleIndex = 0; scaleIndex < 3; scaleIndex++) {
+    float scale = scaleIndex == 0 ? 6.0 : (scaleIndex == 1 ? 11.0 : 19.0);
+    vec2 grid = vec2(longitude, latitude) * scale;
+    vec2 cell = floor(grid);
+    vec2 local = fract(grid);
+    float hashX = scalarHash(cell.x * 13.7 + cell.y * 7.3 + float(scaleIndex) * 91.0);
+    float hashY = scalarHash(cell.x * 5.1 + cell.y * 17.9 + float(scaleIndex) * 37.0);
+    vec2 starPoint = vec2(0.15 + 0.7 * hashX, 0.15 + 0.7 * hashY);
+    float distanceToStar = length((local - starPoint) * vec2(cos(latitude), 1.0));
+    float census = (varianceB - 0.5) * 0.2 + 0.35 * nebulaType - 0.2 * coreType + 0.3 * deepType;
+    float threshold = scaleIndex == 2 ? 0.3 : 0.55;
+    float keep = step(threshold + census, scalarHash(hashX * 89.0 + hashY * 31.0) + band * 0.25);
+    float twinkle = mix(0.92, 0.6 + 0.4 * sin(time * (1.5 + 3.0 * hashX) + hashX * 40.0), resolutionFactor);
+    float sizeHash = scalarHash(hashX * 53.0 + hashY * 71.0 + cell.x);
+    float magnitude = 0.35 + 1.8 * sizeHash * sizeHash;
+    float sharpness = (scaleIndex == 0 ? 260.0 : (scaleIndex == 1 ? 700.0 : 1600.0)) / magnitude * resolutionFactor;
+    float star = exp(-distanceToStar * distanceToStar * sharpness) * keep * twinkle;
+    vec3 temperature = hashX < 0.33 ? vec3(0.85, 0.9, 1.0) : (hashX < 0.66 ? vec3(1.0, 0.95, 0.85) : mix(vec3(1.0), uAccentSecondary, 0.3));
+    vec3 tint = mix(vec3(1.0), temperature, 0.6);
+    float brightness = (scaleIndex == 0 ? 1.7 : (scaleIndex == 1 ? 0.9 : 0.5)) * (0.55 + 0.7 * magnitude);
+    float scaleFade = mix(scaleIndex == 2 ? 0.14 : 0.45, 1.0, detail);
+    color += tint * star * brightness * scaleFade;
+    if (scaleIndex == 0) {
+      float largeStar = smoothstep(1.2, 2.0, magnitude);
+      color += tint * exp(-distanceToStar * distanceToStar * 60.0) * 0.18 * largeStar * twinkle * scaleFade;
+      vec2 offset = (local - starPoint) * vec2(cos(latitude), 1.0);
+      float spike = exp(-offset.x * offset.x * 1200.0) * exp(-offset.y * offset.y * 26.0) + exp(-offset.y * offset.y * 1200.0) * exp(-offset.x * offset.x * 26.0);
+      color += tint * spike * 0.3 * largeStar * twinkle * scaleFade;
+      coverage = max(coverage, spike * 0.3 * largeStar * scaleFade);
+    }
+    coverage = max(coverage, star * min(brightness, 1.5) * scaleFade);
+  }
+  float pulsarAngle = varianceA * 6.28318;
+  vec3 pulsarDirection = normalize(vec3(sin(pulsarAngle) * 0.9, 1.4 * (varianceB - 0.5), cos(pulsarAngle) * 0.9));
+  float pulsarAlignment = max(dot(direction, pulsarDirection), 0.0);
+  float pulse = pow(0.5 + 0.5 * sin(time * (1.2 + varianceC + 1.5 * uAudioPulse) + varianceC * 6.28), 8.0);
+  pulse = min(1.0, pulse + 0.6 * uAudioPulse);
+  float pulsarFade = mix(0.45, 1.0, detail);
+  color += vec3(0.9, 0.95, 1.0) * (pow(pulsarAlignment, 900.0) * (0.6 + 1.2 * pulse) + pow(pulsarAlignment, 110.0) * 0.5 * pulse) * pulsarFade;
+  coverage = max(coverage, pow(pulsarAlignment, 900.0) * (0.5 + 0.5 * pulse) * pulsarFade);
+  return vec4(min(color, vec3(1.0)), min(coverage, 1.0));
+}
+vec4 sampleRotatedSphere(vec3 direction, float spin, float time) {
+  float roll = time * 0.13;
+  float rollCos = cos(roll); float rollSin = sin(roll);
+  direction = vec3(rollCos * direction.x - rollSin * direction.y, rollSin * direction.x + rollCos * direction.y, direction.z);
+  float tilt = 0.45 + 0.35 * sin(time * 0.24);
+  float tiltCos = cos(tilt); float tiltSin = sin(tilt);
+  direction = vec3(direction.x, tiltCos * direction.y - tiltSin * direction.z, tiltSin * direction.y + tiltCos * direction.z);
+  float spinCos = cos(spin); float spinSin = sin(spin);
+  direction = vec3(spinCos * direction.x + spinSin * direction.z, direction.y, -spinSin * direction.x + spinCos * direction.z);
+  return sampleSky(direction, time);
+}
+vec3 shadeOrb(vec2 point) {
+  float radius = length(point);
+  float clampedRadius = min(radius, 0.9995);
+  float depth = sqrt(max(0.0, 1.0 - clampedRadius * clampedRadius));
+  vec3 normal = vec3(point.x, point.y, depth);
+  float rim = pow(1.0 - depth, 2.4);
+  vec3 refracted = refract(vec3(0.0, 0.0, -1.0), normal, 0.75);
+  float backDistance = -2.0 * dot(normal, refracted);
+  vec3 backDirection = normalize(normal + refracted * backDistance);
+  float time = uTime * 0.8 + uSeed;
+  float varianceA = fract(uSeed * 6.31);
+  float varianceB = fract(uSeed * 2.17);
+  float warpedTime = time + (0.9 + 1.3 * varianceA) * sin(time * (0.09 + 0.07 * varianceB)) + (0.5 + 0.8 * varianceB) * sin(time * (0.21 + 0.09 * varianceA) + 2.6);
+  vec4 front = sampleRotatedSphere(normal, uSpin, warpedTime);
+  vec4 back = sampleRotatedSphere(backDirection, uSpin, warpedTime * 0.8 + 2.7);
+  vec3 voidColor = mix(uBaseColor * 0.04, uBaseColor * 0.35, rim);
+  vec3 color = mix(uInteriorColor, voidColor, 0.97 - 0.04 * rim);
+  float frontAlpha = clamp(front.a, 0.0, 1.0);
+  float backAlpha = clamp(back.a, 0.0, 1.0);
+  color = mix(color, back.rgb, backAlpha * 0.16);
+  color = mix(color, front.rgb, frontAlpha * 0.85);
+  float auroraLongitude = atan(normal.x, normal.z);
+  float speechWave = pow(0.5 + 0.5 * sin(auroraLongitude * 3.0 + sin(auroraLongitude * 7.0 + time * 1.1) * 0.7 + time * 0.5), 3.0) * (0.55 + 0.45 * sin(auroraLongitude * 5.0 - time * 0.65 + 1.7));
+  float visibleSky = -normal.y;
+  float hangingMask = smoothstep(-0.15, 0.5, visibleSky);
+  float rayPattern = 0.7 + 0.3 * sin(auroraLongitude * 24.0 + sin(auroraLongitude * 9.0 - time * 0.8) * 2.0 + time * 1.6);
+  float aurora = clamp(speechWave, 0.0, 1.0) * hangingMask * rayPattern * (1.0 + 2.2 * uAudioPulse);
+  float auroraVariance = fract(uSeed * 2.93);
+  vec3 auroraColor = mix(vec3(0.12, 0.95, 0.55), vec3(0.45, 0.35, 1.0), smoothstep(0.0, 0.95, visibleSky + 0.35 * speechWave));
+  auroraColor = mix(auroraColor, mix(uAccentPrimary, uAccentHighlight, auroraVariance), 0.15 + 0.4 * auroraVariance);
+  color += auroraColor * aurora * 0.8;
+  float meteorPeriod = 4.5 + 3.5 * fract(uSeed * 4.91);
+  float meteorEpoch = floor(time / meteorPeriod);
+  float meteorPhase = fract(time / meteorPeriod);
+  vec2 meteorStart = vec2(-1.1 + 2.2 * scalarHash(meteorEpoch * 1.3), 0.85 - 1.4 * scalarHash(meteorEpoch * 2.9));
+  vec2 meteorDirection = normalize(vec2(0.7 + 0.5 * scalarHash(meteorEpoch * 4.1), -0.35 - 0.4 * scalarHash(meteorEpoch * 5.3)));
+  vec2 meteorHead = meteorStart + meteorDirection * meteorPhase * 2.8;
+  vec2 meteorRelative = point - meteorHead;
+  float meteorAlong = dot(meteorRelative, meteorDirection);
+  float meteorPerpendicular = dot(meteorRelative, vec2(-meteorDirection.y, meteorDirection.x));
+  float meteorVisible = smoothstep(0.0, 0.06, meteorPhase) * smoothstep(0.5, 0.32, meteorPhase);
+  float meteorTail = exp(-meteorPerpendicular * meteorPerpendicular * 1600.0) * exp(meteorAlong * 9.0) * step(meteorAlong, 0.0) * smoothstep(-0.5, -0.02, meteorAlong);
+  float meteorGlow = exp(-dot(meteorRelative, meteorRelative) * 900.0);
+  color += (vec3(1.0) * meteorGlow * 1.2 + mix(vec3(1.0), uAccentSecondary, 0.3) * meteorTail * 0.85) * meteorVisible;
+  vec3 movingLight = normalize(vec3(0.85 * sin(time * 0.42), 0.45 * sin(time * 0.26 + 1.2), 0.5));
+  float diffuse = (0.62 + 0.65 * max(dot(normal, movingLight), 0.0)) * (1.0 + 0.35 * uAudioBrightness);
+  color *= diffuse;
+  vec3 voiceColor = mix(uAccentSecondary, vec3(1.0, 0.97, 0.9), 0.45);
+  color += voiceColor * pow(1.0 - clampedRadius, 1.8) * uAudioBrightness * 0.5;
+  color += (uAccentSecondary * 0.7 + vec3(0.12)) * rim * uAudioBrightness * 0.65 * uGlow;
+  color += color * uAudioBrightness * 0.18 * sin(time * 14.0 + clampedRadius * 40.0 + uSeed * 7.0);
+  float counterLight = max(dot(normal.xy, -movingLight.xy), 0.0) * rim;
+  color += mix(uAccentPrimary, vec3(0.5, 0.6, 0.9), 0.5) * counterLight * 0.18 * uGlow;
+  vec3 keyDirection = normalize(vec3(-0.45 + 0.3 * sin(time * 0.34), 0.62 + 0.2 * sin(time * 0.27 + 1.7), 0.64));
+  float keyStrength = 0.5 * (0.78 + 0.22 * sin(time * 0.45 + 2.2));
+  color += vec3(1.0) * pow(max(dot(normal, keyDirection), 0.0), 150.0) * keyStrength * uGlow;
+  vec3 sheenDirection = normalize(vec3(sin(time * 0.07) * 0.9, 0.35 + 0.3 * cos(time * 0.05), 0.7));
+  color += vec3(1.0) * pow(max(dot(normal, sheenDirection), 0.0), 7.0) * 0.05 * uGlow;
+  vec3 glintDirection = normalize(vec3(0.52, -0.5 + 0.12 * sin(time * 0.09), 0.69));
+  color += vec3(1.0) * pow(max(dot(normal, glintDirection), 0.0), 140.0) * 0.25 * uGlow;
+  color = mix(color, front.rgb, frontAlpha * rim * 0.3);
+  float listeningState = step(0.5, uState) * (1.0 - step(1.5, uState));
+  float thinkingState = step(1.5, uState) * (1.0 - step(2.5, uState));
+  float successState = step(3.5, uState) * (1.0 - step(4.5, uState));
+  float errorState = step(4.5, uState);
+  float statePulse = 0.5 + 0.5 * sin(time * (1.1 + thinkingState * 0.7));
+  float stateStrength = uStateBlend * (listeningState * 0.12 + thinkingState * (0.08 + 0.1 * statePulse) + successState * 0.22 + errorState * 0.18);
+  vec3 stateColor = mix(uAccentPrimary, uAccentSecondary, thinkingState * statePulse);
+  stateColor = mix(stateColor, uAccentHighlight, successState);
+  stateColor = mix(stateColor, vec3(1.0, 0.08, 0.05), errorState);
+  color += stateColor * (0.15 + 0.85 * rim) * stateStrength * uGlow;
+  color *= uVisualIntensity;
+  float limb = smoothstep(0.94, 1.0, clampedRadius);
+  return mix(color, color * 0.85, limb * 0.4);
+}
+void main() {
+  vec2 point = vUv * 2.0 - 1.0;
+  if (length(point) > 1.0) discard;
+  if (uGlass > 0.0) {
+    float radius = length(point);
+    float exponential = exp(2.0 * 1.7724539 * (radius - 0.9) / 0.1414214);
+    float edgeFalloff = 0.5 + 0.5 * (exponential - 1.0) / (exponential + 1.0);
+    if (edgeFalloff > 0.004) {
+      float lensPulse = 1.0 + 0.16 * (0.6 * sin(uTime * 0.9 + uSeed) + 0.4 * sin(uTime * 1.7 + uSeed * 1.3));
+      float displacement = uGlass * edgeFalloff * lensPulse;
+      float redShift = 1.4 * (1.0 + 0.06 * sin(uTime * 1.3 + uSeed));
+      float greenShift = 1.2 * (1.0 + 0.06 * sin(uTime * 1.3 + uSeed + 2.1));
+      float blueShift = 1.0 * (1.0 + 0.06 * sin(uTime * 1.3 + uSeed + 4.2));
+      vec3 color = vec3(
+        shadeOrb(point * (1.0 - displacement * redShift)).r,
+        shadeOrb(point * (1.0 - displacement * greenShift)).g,
+        shadeOrb(point * (1.0 - displacement * blueShift)).b
+      );
+      vec2 absolutePoint = min(abs(point), 1.0);
+      float lobe = max(abs(absolutePoint.x * 0.766 + absolutePoint.y * 0.643), abs(absolutePoint.x * 0.766 - absolutePoint.y * 0.643));
+      float glow = 0.65 * pow(clamp((lobe - 0.0707) / 1.3435, 0.0, 1.0), 2.4) * edgeFalloff;
+      glow += 1.02 * clamp(1.0 + (radius - 1.0) / 0.15, 0.0, 1.0) * step(radius, 1.0) * pow(lobe, 2.0);
+      color += vec3(0.25) * min(glow, 1.0) * uGlow;
+      gl_FragColor = vec4(color, 1.0);
+      return;
+    }
+  }
+  gl_FragColor = vec4(shadeOrb(point), 1.0);
+}
+`;
+const BLOOM_VARIANT = {
+  phase: 4.6, archetype: 2,
+  base: hexToRgb('#07262B'), interior: [0, 0, 0],
+  acc: [hexToRgb('#00C2A8'), hexToRgb('#38E1FF'), hexToRgb('#FFC65C')],
+  glass: 0.4, intensity: 1, detail: 1, glow: 1, speed: 1, drift: 1
+};
+const BLOOM_STATE_IDX = { listening: 3, transcribing: 2, done: 4, error: 5 };
+const bloomCanvas = document.getElementById('bloom-canvas');
+const bloom = {
+  gl: null, prog: null, loc: null, ready: false,
+  motion: { phase: BLOOM_VARIANT.phase, audioSmooth: 0, audioFast: 0, spinDir: 1, spinVel: 0, prevA: 0, flipQueued: false, oscSign: 1, spin: 4.6 * 3.7, lastT: null },
+  stateIdx: 3, stateBlend: 1, lastStateAt: null,
+  timeOffset: Math.random() * 4000, size: 0
+};
+function bloomCompile(t, s) { const g = bloom.gl; const sh = g.createShader(t); g.shaderSource(sh, s); g.compileShader(sh); return sh; }
+function bloomInit() {
+  if (bloom.ready || !bloomCanvas) return true;
+  const g = bloomCanvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: false, preserveDrawingBuffer: false });
+  if (!g) return false;
+  bloom.gl = g;
+  const vs = bloomCompile(g.VERTEX_SHADER, BLOOM_VERT);
+  const fs = bloomCompile(g.FRAGMENT_SHADER, BLOOM_FRAG);
+  if (!g.getShaderParameter(vs, g.COMPILE_STATUS) || !g.getShaderParameter(fs, g.COMPILE_STATUS)) return false;
+  const p = g.createProgram();
+  g.attachShader(p, vs); g.attachShader(p, fs);
+  g.bindAttribLocation(p, 0, 'aPosition'); g.bindAttribLocation(p, 1, 'aTextureCoord');
+  g.linkProgram(p);
+  if (!g.getProgramParameter(p, g.LINK_STATUS)) return false;
+  bloom.prog = p;
+  g.useProgram(p);
+  const buf = g.createBuffer();
+  g.bindBuffer(g.ARRAY_BUFFER, buf);
+  g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1,-1,0,1, 1,-1,1,1, -1,1,0,0, 1,1,1,0]), g.STATIC_DRAW);
+  const L = { position: g.getAttribLocation(p, 'aPosition'), textureCoord: g.getAttribLocation(p, 'aTextureCoord') };
+  ['uResolution','uInteriorColor','uBaseColor','uAccentPrimary','uAccentSecondary','uAccentHighlight','uTime','uSeed','uAudioBrightness','uAudioPulse','uSpin','uArchetype','uGlass','uVisualIntensity','uDetail','uGlow','uState','uStateBlend'].forEach(n => L[n] = g.getUniformLocation(p, n));
+  bloom.loc = L;
+  g.disable(g.DEPTH_TEST); g.enable(g.BLEND); g.blendFunc(g.ONE, g.ONE_MINUS_SRC_ALPHA);
+  g.enableVertexAttribArray(L.position); g.vertexAttribPointer(L.position, 2, g.FLOAT, false, 16, 0);
+  g.enableVertexAttribArray(L.textureCoord); g.vertexAttribPointer(L.textureCoord, 2, g.FLOAT, false, 16, 8);
+  g.uniform3f(L.uInteriorColor, 0, 0, 0);
+  g.uniform3f(L.uBaseColor, ...BLOOM_VARIANT.base);
+  g.uniform3f(L.uAccentPrimary, ...BLOOM_VARIANT.acc[0]);
+  g.uniform3f(L.uAccentSecondary, ...BLOOM_VARIANT.acc[1]);
+  g.uniform3f(L.uAccentHighlight, ...BLOOM_VARIANT.acc[2]);
+  g.uniform1f(L.uSeed, BLOOM_VARIANT.phase);
+  g.uniform1f(L.uArchetype, BLOOM_VARIANT.archetype);
+  g.uniform1f(L.uGlass, BLOOM_VARIANT.glass);
+  g.uniform1f(L.uVisualIntensity, BLOOM_VARIANT.intensity);
+  g.uniform1f(L.uDetail, BLOOM_VARIANT.detail);
+  g.uniform1f(L.uGlow, BLOOM_VARIANT.glow);
+  bloom.ready = true;
+  bloomResize();
+  return true;
+}
+function bloomResize() {
+  if (!bloom.ready) return;
+  const css = Math.max(64, Math.min(220, bloomCanvas.clientWidth || bloomCanvas.parentElement.clientWidth || 132));
+  const px = Math.round(css * Math.min(window.devicePixelRatio || 1, 2));
+  if (px === bloom.size) return;
+  bloom.size = px;
+  bloomCanvas.width = px; bloomCanvas.height = px;
+}
+function bloomAdvance(time, audioLevel) {
+  const m = bloom.motion;
+  const delta = m.lastT === null ? 0 : Math.min(0.1, Math.max(0, time - m.lastT));
+  m.lastT = time;
+  const input = Math.min(1, Math.max(0, audioLevel));
+  const sc = input > m.audioSmooth ? 0.11 : 0.3;
+  m.audioSmooth += (input - m.audioSmooth) * (delta > 0 ? 1 - Math.exp(-delta / sc) : 0);
+  const fc = input > m.audioFast ? 0.04 : 0.18;
+  m.audioFast += (input - m.audioFast) * (delta > 0 ? 1 - Math.exp(-delta / fc) : 0);
+  const pv = (6.31 * m.phase) % 1;
+  const drift = BLOOM_VARIANT.drift * 0.35 * Math.sin(time * (0.11 + 0.08 * ((2.17 * m.phase) % 1)) + m.phase);
+  const osc = Math.sin(time * (0.45 + 0.2 * pv) + m.phase);
+  if (Math.sign(osc) !== m.oscSign) { m.oscSign = Math.sign(osc); m.flipQueued = true; }
+  if (m.flipQueued && m.audioFast < 0.18) { m.spinDir = -m.spinDir; m.flipQueued = false; }
+  const target = BLOOM_VARIANT.speed * (0.65 * (0.65 + 0.7 * pv) * (1 + drift) + m.spinDir * m.audioFast * 2.2);
+  m.spinVel += (target - m.spinVel) * (delta > 0 ? 1 - Math.exp(-delta / 0.35) : 0);
+  const attack = Math.max(0, m.audioFast - m.prevA);
+  m.prevA = m.audioFast;
+  m.spinVel += m.spinDir * Math.min(6 * attack, 1.4) * delta * 14 * BLOOM_VARIANT.speed;
+  m.spin += m.spinVel * delta;
+}
+function bloomRender(now, lvl) {
+  if (!bloom.ready && !bloomInit()) return;
+  const cssNow = bloomCanvas.clientWidth || bloomCanvas.parentElement.clientWidth || 132;
+  const pxNow = Math.round(cssNow * Math.min(window.devicePixelRatio || 1, 2));
+  if (!bloom.size || Math.abs(pxNow - bloom.size) > 8) bloomResize();
+  const g = bloom.gl, L = bloom.loc;
+  const time = now / 1000 + bloom.timeOffset;
+  bloomAdvance(time, lvl);
+  const delta = bloom.lastStateAt === null ? 0 : Math.min(0.1, Math.max(0, (now - bloom.lastStateAt) / 1000));
+  bloom.lastStateAt = now;
+  if (delta > 0) bloom.stateBlend += (1 - bloom.stateBlend) * (1 - Math.exp(-delta / 0.18));
+  const s = bloom.size || 256;
+  g.viewport(0, 0, s, s);
+  g.clearColor(0, 0, 0, 0);
+  g.clear(g.COLOR_BUFFER_BIT);
+  g.useProgram(bloom.prog);
+  g.uniform2f(L.uResolution, s, s);
+  g.uniform1f(L.uTime, time);
+  g.uniform1f(L.uAudioBrightness, Math.min(1, bloom.motion.audioSmooth * 1));
+  g.uniform1f(L.uAudioPulse, Math.min(1, bloom.motion.audioSmooth * 1));
+  g.uniform1f(L.uSpin, bloom.motion.spin);
+  g.uniform1f(L.uState, bloom.stateIdx);
+  g.uniform1f(L.uStateBlend, bloom.stateBlend);
+  g.drawArrays(g.TRIANGLE_STRIP, 0, 4);
+}
+function bloomSetState(pillState) {
+  bloom.stateIdx = BLOOM_STATE_IDX[pillState] !== undefined ? BLOOM_STATE_IDX[pillState] : 3;
+  bloom.stateBlend = 0; bloom.lastStateAt = null;
+}
+
 // ---------- Render loop ----------
 function render(now) {
   const dt = Math.min((now - last) / 1000, 0.1);
@@ -258,24 +724,41 @@ function render(now) {
   level += (targetLevel - level) * Math.min(1, dt * 14);
   for (let i = 0; i < 3; i++) rgb[i] += (targetRgb[i] - rgb[i]) * Math.min(1, dt * 8);
 
-  if (gl) {
+  const isOrb = pill.dataset.pill === 'orb';
+  if (gl && isOrb) {
     gl.uniform3f(uCol, rgb[0], rgb[1], rgb[2]);
     orbTime += dt * (1 + level * 1.5);
     gl.uniform1f(uTime, orbTime);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
+  const isBloom = pill.dataset.pill === 'bloom';
+  if (isBloom) {
+    const blvl = state === 'transcribing' ? Math.max(level, 0.4) : level;
+    try { bloomRender(now, blvl); } catch (e) {}
+  }
+
   orbBox.style.setProperty('--lvl', level.toFixed(3));
 
   const lvl = state === 'transcribing' ? 0.45 : level;
   const spd = state === 'transcribing' ? 5 : 8;
-  const n = bars.length, mid = (n - 1) / 2;
-  for (let i = 0; i < n; i++) {
-    const env = 1 - Math.abs(i - mid) / (mid + 1.5);
-    const wob = 0.5 + 0.5 * Math.sin(now / 1000 * spd - i * 0.9);
-    const s = Math.max(0.18, Math.min(1, 0.18 + lvl * env * (0.45 + 0.55 * wob) * 1.5));
-    bars[i].style.transform = `scaleY(${s.toFixed(3)})`;
-  }
+
+  const drive = (list, gain) => {
+    const n = list.length, mid = (n - 1) / 2;
+    for (let i = 0; i < n; i++) {
+      const env = 1 - Math.abs(i - mid) / (mid + 1.5);
+      const wob = 0.5 + 0.5 * Math.sin(now / 1000 * spd - i * 0.9);
+      const s = Math.max(0.18, Math.min(1, 0.18 + lvl * env * (0.45 + 0.55 * wob) * gain));
+      list[i].style.transform = `scaleY(${s.toFixed(3)})`;
+    }
+  };
+  drive(bars, 1.5);
+  drive(mbars, 1.9);
+
+  // Ember core + halo dot breathe with the mic level
+  const breathe = 1 + level * 0.55 + 0.06 * Math.sin(now / 1000 * (state === 'transcribing' ? 9 : 3.2));
+  emberCore.style.transform = `translate(-50%, -50%) scale(${breathe.toFixed(3)})`;
+  haloDot.style.transform = `translate(-50%, -50%) scale(${(1 + level * 0.7).toFixed(3)})`;
 
   if (timerStart !== null) timerEl.textContent = fmt(performance.now() - timerStart);
   requestAnimationFrame(render);
@@ -283,6 +766,20 @@ function render(now) {
 requestAnimationFrame(render);
 
 // ---------- API exposed to Python ----------
+window.setPillTheme = function (name) {
+  if (!THEMES[name]) return;
+  pillTheme = name;
+  pill.dataset.pill = name;
+  if (name === 'bloom') {
+    bloomInit(); requestAnimationFrame(() => bloomResize());
+    bloomSetState(state);
+  }
+  if (state === 'listening') {
+    document.documentElement.style.setProperty('--accent', listeningColor());
+    targetRgb = hexToRgb(listeningColor());
+  }
+};
+
 window.setState = function (next) {
   const cfg = STATES[next];
   if (!cfg) return;
@@ -292,8 +789,10 @@ window.setState = function (next) {
   titleEl.textContent = cfg.title; swap(titleEl);
   subEl.textContent = cfg.sub;     swap(subEl);
 
-  document.documentElement.style.setProperty('--accent', cfg.color);
-  targetRgb = hexToRgb(cfg.color);
+  const color = cfg.color || listeningColor();
+  document.documentElement.style.setProperty('--accent', color);
+  targetRgb = hexToRgb(color);
+  bloomSetState(next);
 
   if (next === 'listening') {
     timerStart = performance.now();

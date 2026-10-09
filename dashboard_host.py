@@ -41,6 +41,12 @@ import win_startup
 import smart_enhancer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+try:
+    os.chdir(BASE_DIR)
+except Exception:
+    pass
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 HTML_PATH = os.path.join(BASE_DIR, "dashboard.html")
 ICON_PATH = os.path.join(BASE_DIR, "quotal.ico")
 ENGINE_PORT = 48291
@@ -56,6 +62,7 @@ MODELS = [
 ]
 
 window = None
+_main_hwnd = None
 
 
 def _send_engine(msg: str):
@@ -65,6 +72,21 @@ def _send_engine(msg: str):
         s.close()
     except Exception:
         pass
+
+
+def _query_engine(msg: str, timeout=1.0) -> str:
+    """Sends a message and waits for a one-line reply. Returns '' on failure."""
+    try:
+        s = socket.create_connection(("127.0.0.1", ENGINE_PORT), timeout=timeout)
+        s.settimeout(timeout)
+        try:
+            s.sendall(msg.encode() + b"\n")
+            data = s.recv(64)
+        finally:
+            s.close()
+        return data.decode("utf-8", "ignore").strip()
+    except Exception:
+        return ""
 
 
 def _history_mtime() -> float:
@@ -147,7 +169,12 @@ class Api:
         s = settings_manager.load_settings()
         s[key] = value
         settings_manager.save_settings(s)
+        if key == "theme":
+            update_title_bar(value)
         return True
+
+    def set_theme(self, theme):
+        return self.set_setting("theme", theme)
 
     def set_autostart(self, value):
         return win_startup.set_autostart(bool(value))
@@ -158,6 +185,20 @@ class Api:
         settings_manager.save_settings(s)
         _send_engine(f"model:{key}")
         return True
+
+    def select_pill(self, key):
+        # if key not in ("orb", "ember", "meter", "halo", "bloom", "nova", "pulse", "wispr", "bloomcs"):
+        if key not in ("bloom", "wispr"):
+            return {"ok": False, "live": False}
+        s = settings_manager.load_settings()
+        s["pill_style"] = key
+        settings_manager.save_settings(s)
+        # Only the new engine answers the handshake; an old/absent engine
+        # would silently swallow the message, so report that instead.
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"pill:{key}")
+        return {"ok": True, "live": live}
 
 
 def _form():
@@ -197,7 +238,58 @@ def _listen(sock):
             break
 
 
+def update_title_bar(theme: str = None):
+    global _main_hwnd
+    hwnd = _main_hwnd
+    if not hwnd:
+        f = _form()
+        if f:
+            try:
+                hwnd = int(f.Handle.ToInt64())
+            except AttributeError:
+                hwnd = int(f.Handle.ToInt32())
+            _main_hwnd = hwnd
+    if not hwnd:
+        return
+
+    try:
+        if not theme:
+            s = settings_manager.load_settings()
+            theme = s.get("theme", "dark")
+        is_dark = (str(theme).lower() != "light")
+
+        # 1. Immersive dark mode (attr 20 on Win11/Win10 2004+, attr 19 on older Win10)
+        # 1 = dark mode, 0 = light mode
+        val = ctypes.c_int(1 if is_dark else 0)
+        for attr in (20, 19):
+            if ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(val), 4) == 0:
+                break
+
+        # 2. Caption and text colors (Windows 11 build 22000+)
+        # COLORREF format: 0x00BBGGRR
+        if is_dark:
+            caption_color = ctypes.c_int(0x00141617)  # #171614 (obsidian panel)
+            text_color = ctypes.c_int(0x00DDE7EC)     # #ece7dd (ink)
+        else:
+            caption_color = ctypes.c_int(0x00E2EAED)  # #edeae2 (warm parchment panel)
+            text_color = ctypes.c_int(0x00171A1C)     # #1c1a17 (charcoal ink)
+
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(caption_color), 4)
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 36, ctypes.byref(text_color), 4)
+
+        # 3. Force DWM to redraw the window frame immediately
+        try:
+            user32 = ctypes.windll.user32
+            # SWP_NOMOVE(0x2) | SWP_NOSIZE(0x1) | SWP_NOZORDER(0x4) | SWP_FRAMECHANGED(0x20) = 0x27
+            user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 0x0027)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+
 def on_start():
+    global _main_hwnd
     window.events.loaded.wait(10)
     f = None
     for _ in range(100):
@@ -207,15 +299,14 @@ def on_start():
         import time; time.sleep(0.05)
     if not f:
         return
-    hwnd = f.Handle.ToInt32()
-    # Dark title bar (Windows 10 2004+ / 11)
-    val = ctypes.c_int(1)
-    for attr in (20, 19):
-        if ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(val), 4) == 0:
-            break
-    # Mica-like caption color to blend with UI (Windows 11; ignored elsewhere)
-    color = ctypes.c_int(0x0B0707)  # COLORREF 0x00BBGGRR -> #07070B
-    ctypes.windll.dwmapi.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(color), 4)
+    try:
+        _main_hwnd = int(f.Handle.ToInt64())
+    except AttributeError:
+        _main_hwnd = int(f.Handle.ToInt32())
+
+    s = settings_manager.load_settings()
+    theme = s.get("theme", "dark")
+    update_title_bar(theme)
 
     def _icon():
         if os.path.exists(ICON_PATH):
@@ -244,6 +335,10 @@ def main():
         return
     threading.Thread(target=_listen, args=(sock,), daemon=True).start()
 
+    s = settings_manager.load_settings()
+    is_dark = (s.get("theme", "dark") != "light")
+    bg_color = "#131210" if is_dark else "#edeae2"
+
     window = webview.create_window(
         "Quotal",
         url=HTML_PATH,
@@ -251,7 +346,7 @@ def main():
         width=1180,
         height=780,
         min_size=(900, 600),
-        background_color="#0a0a0d",
+        background_color=bg_color,
         text_select=False,
     )
     webview.start(on_start, gui="edgechromium")

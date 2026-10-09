@@ -56,8 +56,16 @@ from System.Drawing.Drawing2D import GraphicsPath
 import settings_manager
 from settings_manager import load_settings, save_settings
 
-HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pill.html")
-LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web_pill.log")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+try:
+    os.chdir(BASE_DIR)
+except Exception:
+    pass
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+HTML_PATH = os.path.join(BASE_DIR, "pill.html")
+LOG_PATH = os.path.join(BASE_DIR, "web_pill.log")
 
 
 def log(msg):
@@ -119,12 +127,27 @@ ready_event = threading.Event()
 work_rect = wintypes.RECT()
 user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(work_rect), 0)
 
-pill_css_w = 296
-pill_css_h = 56
+pill_css_w = 68
+pill_css_h = 68
+# Compact themes get a narrower window so the capsule hugs its content.
+# Bloom is orb-only: a square transparent window, just the living orb.
+PILL_SIZES = {
+    # "orb": (296, 56),
+    # "ember": (296, 56),
+    # "meter": (196, 56),
+    # "halo": (196, 56),
+    "bloom": (68, 68),
+}
 pos_x = 0
 pos_y = 0
 phys_w = 0
 phys_h = 0
+# Desired window size in CSS px (theme-dependent). Physical device px are
+# derived via _dpi_scale, captured once at startup when the form still has
+# its default size (form.Size is in device px, e.g. 85 at 125% DPI).
+pill_css_cur_w = 68
+pill_css_cur_h = 68
+_dpi_scale = None
 
 
 _cached_settings = None
@@ -149,14 +172,20 @@ def get_settings():
 
 
 def update_placement():
-    global pos_x, pos_y, phys_w, phys_h
+    global pos_x, pos_y, phys_w, phys_h, _dpi_scale
     user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(work_rect), 0)
     if form:
-        phys_w = form.Size.Width
-        phys_h = form.Size.Height
+        if _dpi_scale is None:
+            try:
+                _dpi_scale = form.Size.Width / float(pill_css_w)
+            except Exception:
+                _dpi_scale = 1.25
+        scale = _dpi_scale or 1.25
+        phys_w = int(pill_css_cur_w * scale)
+        phys_h = int(pill_css_cur_h * scale)
     else:
-        phys_w = int(pill_css_w * 1.25)
-        phys_h = int(pill_css_h * 1.25)
+        phys_w = int(pill_css_cur_w * 1.25)
+        phys_h = int(pill_css_cur_h * 1.25)
 
     settings = get_settings()
     custom_x = settings.get("pill_x")
@@ -411,6 +440,7 @@ def apply_overlay_styles():
                 except Exception:
                     pass
             form.Location = Point(pos_x, pos_y)
+            form.MinimumSize = Size(60, 50)
             form.Size = Size(phys_w, phys_h)
 
             form.HandleCreated += lambda s, e: (get_hwnd(), apply_dwm_borderless())
@@ -439,12 +469,62 @@ def apply_overlay_styles():
         log(f"True transparent styles applied with padded capsule clipping. HWND={cur_hwnd}, pos=({pos_x},{pos_y}), size=({phys_w},{phys_h})")
 
 
+def apply_theme(style):
+    """Switches the pill visual and resizes the window (compact themes hug content)."""
+    global pill_css_cur_w, pill_css_cur_h
+    if style not in PILL_SIZES:
+        return
+    try:
+        win.evaluate_js(f"window.setPillTheme('{style}')")
+    except Exception as e:
+        log(f"Error setting pill theme: {e}")
+    w, h = PILL_SIZES[style]
+    if (w, h) == (pill_css_cur_w, pill_css_cur_h):
+        return
+    pill_css_cur_w, pill_css_cur_h = w, h
+    update_placement()
+
+    def _rz():
+        try:
+            form.MinimumSize = Size(60, 50)
+            form.Size = Size(phys_w, phys_h)
+            form.Location = Point(pos_x, pos_y)
+        except Exception as e:
+            log(f"Error resizing pill window: {e}")
+
+    try:
+        if form and form.InvokeRequired:
+            form.BeginInvoke(System.Action(_rz))
+        elif form:
+            _rz()
+    except Exception:
+        pass
+    cur_hwnd = get_hwnd()
+    if cur_hwnd:
+        try:
+            user32.SetWindowPos(
+                cur_hwnd, HWND_TOPMOST, pos_x, pos_y, phys_w, phys_h,
+                SWP_NOACTIVATE | SWP_SHOWWINDOW
+            )
+        except Exception:
+            pass
+        apply_all_regions(pad=1)
+
+
 def do_show(state="listening"):
-    global win, form, pos_x, pos_y, phys_w, phys_h
+    global win, form, pos_x, pos_y, phys_w, phys_h, pill_css_cur_w, pill_css_cur_h
     cur_hwnd = get_hwnd()
     if not win or not cur_hwnd:
         return
+    # style = get_settings().get("pill_style", "orb") or "orb"
+    style = get_settings().get("pill_style", "bloom") or "bloom"
+    if style in PILL_SIZES:
+        pill_css_cur_w, pill_css_cur_h = PILL_SIZES[style]
     update_placement()
+    try:
+        win.evaluate_js(f"window.setPillTheme('{style}')")
+    except Exception:
+        pass
 
     def _show_form():
         if form:
@@ -513,6 +593,8 @@ def stdin_listener():
             if cmd == "show":
                 state = arg or "listening"
                 do_show(state)
+            elif cmd == "theme":
+                apply_theme(arg)
             elif cmd == "state":
                 win.evaluate_js(f"window.setState('{arg}')")
             elif cmd == "level":
@@ -547,7 +629,7 @@ def main():
         js_api=api,
         width=pill_css_w,
         height=pill_css_h,
-        min_size=(296, 56),
+        min_size=(60, 50),
         frameless=True,
         transparent=True,
         on_top=True,

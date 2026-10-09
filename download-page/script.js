@@ -50,6 +50,14 @@
     say(r.querySelector("strong").textContent + " — switch it for real in the dashboard");
   }));
 
+  // ── Pill style switcher ──
+  const ptBtns = [...document.querySelectorAll(".pt-switch button")];
+  const pillBodyEl = document.getElementById("pillBody");
+  ptBtns.forEach((b) => b.addEventListener("click", () => {
+    ptBtns.forEach((x) => x.classList.toggle("on", x === b));
+    pillBodyEl.dataset.ptheme = b.dataset.pt;
+  }));
+
   // ── Pill hold-to-talk demo ──
   const body = document.getElementById("pillBody");
   const title = document.getElementById("pillTitle");
@@ -121,7 +129,7 @@
     const gl = cv.getContext("webgl", { alpha: true, antialias: true });
     const S = 132;
     cv.width = cv.height = S;
-    if (!gl) { cv.parentElement.style.background = "radial-gradient(circle at 35% 30%,#fff,#8b7cff)"; return; }
+    if (!gl) { cv.parentElement.style.background = "radial-gradient(circle at 35% 30%,#fff,#ff5d1f)"; return; }
     const V = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
     const F = "precision mediump float;uniform vec2 r;uniform float t;uniform vec3 c;"
       + "float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5);}"

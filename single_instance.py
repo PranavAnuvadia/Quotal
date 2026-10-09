@@ -49,10 +49,22 @@ class SingleInstance:
             try:
                 conn, _ = self.sock.accept()
                 data = conn.recv(1024)
+                msg = data.decode("utf-8", "ignore").strip()
+                if msg == "version?":
+                    # Handshake probe: lets the dashboard detect a live, up-to-date engine.
+                    try:
+                        conn.sendall(b"quotal:3\n")
+                    except Exception:
+                        pass
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+                    continue
                 conn.close()
                 if self.on_show_requested:
                     try:
-                        self.on_show_requested(data.decode("utf-8", "ignore").strip())
+                        self.on_show_requested(msg)
                     except TypeError:
                         self.on_show_requested()
             except Exception:

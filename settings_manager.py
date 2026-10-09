@@ -17,6 +17,8 @@ DEFAULT_SETTINGS = {
     "audio_chimes": True,
     "pill_x": None,
     "pill_y": None,
+    "pill_style": "bloom",  # "bloom", "wispr" (commented out: "orb", "ember", "meter", "halo", "nova", "pulse", "bloomcs")
+    "theme": "dark",        # "dark" or "light"
 }
 
 MODEL_CONFIGS = {

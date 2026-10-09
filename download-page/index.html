@@ -78,8 +78,11 @@
 
       <figure class="win pill" id="pillWin">
         <figcaption class="titlebar"><span class="dots"><i></i><i></i><i></i></span><span class="t">pill &mdash; try it: hold <span class="key k-s">H</span> or the button</span></figcaption>
-        <div class="pill-body" data-state="listening" id="pillBody">
+        <div class="pill-body" data-state="listening" data-ptheme="aura" id="pillBody">
           <div class="orb" aria-hidden="true"><canvas id="orb" width="132" height="132"></canvas></div>
+          <div class="d-viz d-ember" aria-hidden="true"></div>
+          <div class="d-viz d-meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="d-viz d-orbit" aria-hidden="true"><span class="r"></span><span class="c"></span></div>
           <div class="pill-mid">
             <p class="p-row"><strong id="pillTitle">Listening</strong><span class="p-timer" id="pillTimer">0:00</span></p>
             <p class="p-sub" id="pillSub">holding the key&hellip; speak now</p>
@@ -88,6 +91,9 @@
           <div class="p-done" id="pillDone" aria-hidden="true">&check;</div>
         </div>
         <p class="typed" aria-live="polite"><span id="typed"></span><span class="caret" aria-hidden="true"></span></p>
+        <div class="pt-switch" role="group" aria-label="Pill style">
+          <button class="on" data-pt="aura">aura</button><button data-pt="ember">ember</button><button data-pt="meter">meter</button><button data-pt="orbit">orbit</button>
+        </div>
         <button class="holdbtn" id="holdBtn">Hold to dictate</button>
         <p class="win-foot">drag it anywhere &middot; double-click snaps it home &mdash; same as the real one</p>
       </figure>
@@ -173,7 +179,7 @@
     <li><i class="d-b"></i><b>Listening</b> &mdash; blue orb, live meter</li>
     <li><i class="d-p"></i><b>Enhancing</b> &mdash; violet, text shimmer</li>
     <li><i class="d-g"></i><b>Pasted</b> &mdash; green tick, then gone</li>
-    <li class="drag">drag it anywhere &middot; double-click to re-centre &middot; position survives reboots</li>
+    <li class="drag">drag it anywhere &middot; double-click to re-centre &middot; aura / ember / meter / orbit picked in Settings</li>
   </ul>
 </section>
 

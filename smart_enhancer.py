@@ -86,32 +86,332 @@ QUESTION_STARTERS = {
     "is", "are", "do", "does", "did", "can", "could", "will", "would", "should", "may"
 }
 
+# --- Instant-tidy: Backtrack cues (no LLM) ---
+TOTAL_ABANDON_RES = [
+    r"forget all that", r"forget everything", r"forget that",
+    r"ignore all that", r"ignore that",
+    r"scratch everything", r"scratch all that",
+    r"never mind all that", r"start over",
+]
+# Clause-drop cues: previous clause/sentence is retracted, keep suffix.
+CLAUSE_DROP_CUES = [
+    "scratch that", "never mind", "let me rephrase",
+    "forget it", "ignore it",
+]
+# Inline correction cues: "<old> CUE <new>"
+INLINE_CUES = [
+    "scratch that", "wait no", "oh wait", "no wait",
+    "never mind", "actually", "let me rephrase",
+    "i mean", "sorry",
+]
+NUMBER_WORDS = {
+    "zero", "one", "two", "three", "four", "five", "six", "seven",
+    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+    "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+    "thirty", "forty", "fifty", "hundred", "thousand",
+}
+
+# --- Instant-tidy: Code awareness (no LLM) ---
+CODE_HINT_RE = re.compile(
+    r"\b(const|let|var|function|async|await|export|import|return|if|else|"
+    r"docker|kubectl|git|npm|class|for|while|request|response|next)\b",
+    re.IGNORECASE,
+)
+SPOKEN_SYMBOLS_MULTI = [
+    (r"\bopen paren(?:thesis)?\b", "("),
+    (r"\bclose paren(?:thesis)?\b", ")"),
+    (r"\bopen bracket\b", "["),
+    (r"\bclose bracket\b", "]"),
+    (r"\bopen (?:brace|curly(?: bracket)?)\b", "{"),
+    (r"\bclose (?:brace|curly(?: bracket)?)\b", "}"),
+    (r"\bdouble quote\b", '"'),
+    (r"\bsingle quote\b", "'"),
+    (r"\bback ?tick\b", "`"),
+    (r"\bsemicolon\b", ";"),
+    (r"\bcolon\b", ":"),
+    (r"\bcomma\b", ","),
+    (r"\bdouble (?:equals?|equal to)\b", "=="),
+    (r"\bstrictly? equals?\b", "==="),
+    (r"\bnot equals?\b|\bnot equal to\b", "!="),
+    (r"\bfat arrow\b|\barrow\b", "=>"),
+    (r"\bdivided by\b", "/"),
+    (r"\bmultiplied by\b", "*"),
+]
+SPOKEN_OPERATORS_CODE_ONLY = [
+    (r"\bequals?\b", "="),
+    (r"\bplus\b", "+"),
+    (r"\bminus\b", "-"),
+    (r"\btimes\b", "*"),
+    (r"\bpipe\b", "|"),
+    (r"\bampersand\b", "&"),
+    (r"\bpercent\b", "%"),
+]
+TECH_ACRONYMS = [
+    (r"\bjson\b", "JSON"),
+    (r"\bjavascript\b", "JavaScript"),
+    (r"\btypescript\b", "TypeScript"),
+    (r"\bpostgres(?:ql)?\b", "PostgreSQL"),
+    (r"\bmysql\b", "MySQL"),
+    (r"\bjwt\b", "JWT"),
+    (r"\boauth\b", "OAuth"),
+    (r"\bkubernetes\b|\bk8s\b", "Kubernetes"),
+    (r"\basync await\b", "async/await"),
+    (r"\basync\b", "async"),
+    (r"\bawait\b", "await"),
+    (r"\bgithub\b", "GitHub"),
+    (r"\bvs ?code\b", "VS Code"),
+    (r"\bapi\b", "API"),
+    (r"\bdot env\b", ".env"),
+]
+CLI_FLAG_PHRASES = [
+    (r"\bwith detached flag\b|\bin detached mode\b", " -d"),
+    (r"\bwith force flag\b", " --force"),
+    (r"\bwith verbose flag\b", " --verbose"),
+    (r"\bwith recursive flag\b", " -r"),
+]
+
+LIST_HEADERS = [
+    "action items", "action item", "to dos", "to do", "todos", "todo",
+    "action plan", "agenda", "checklist", "shopping list", "steps", "step",
+]
+ENUM_SPLIT_RE = re.compile(
+    r",?\s*(?:first(?:ly)?|second(?:ly)?|third(?:ly)?|fourth(?:ly)?|fifth(?:ly)?|sixth(?:ly)?|seventh(?:ly)?)\s+(?:we\s+)?",
+    re.IGNORECASE,
+)
+TASK_VERBS = [
+    "review", "deploy", "run", "ping", "send", "check", "restart",
+    "alert", "book", "call", "email", "merge", "test", "build",
+]
+# Verbs safe for blind verb-boundary splitting (excludes noun/verb ambiguities like build/test).
+SPLIT_VERBS = [
+    "review", "deploy", "run", "ping", "send", "check", "restart",
+    "alert", "book", "call", "email", "merge",
+]
+CODE_NUMBER_WORDS = {
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9", "ten": "10",
+}
+
+
+def _strip_explanation_prefix(suffix: str) -> str:
+    """Drop leading '<Name> is out on PTO/sick/unavailable'-style explanation."""
+    s = re.sub(
+        r"^\s*[A-Z][a-z]*\s+is\s+out\s+(?:on\s+\w+|sick|unavailable|on leave)[,.]?\s*",
+        "", suffix.strip(), flags=re.IGNORECASE,
+    )
+    return s.strip()
+
+
+def _merge_instead(prefix: str, suffix: str) -> str | None:
+    """Handle '<.. to A ..> CUE <.. to B instead>' -> keep B, drop duplicate verb."""
+    m_target = re.search(r"\bto\s+([A-Za-z][\w]*)\s+instead\b", suffix, flags=re.IGNORECASE)
+    m_orig = re.search(r"\bto\s+(\w+)\b", prefix, flags=re.IGNORECASE)
+    if not (m_target and m_orig):
+        return None
+    target = m_target.group(1)
+    prefix_fixed = re.sub(r"\bto\s+\w+\b", f"to {target} instead", prefix, count=1, flags=re.IGNORECASE)
+    suffix_fixed = re.sub(
+        r"^.*?\bto\s+\w+\s+instead\s*", "", suffix,
+        count=1, flags=re.IGNORECASE | re.DOTALL,
+    ).strip(" ,")
+    if not suffix_fixed:
+        return prefix_fixed.strip()
+    if re.match(r"^(and|but|or)\b", suffix_fixed, flags=re.IGNORECASE):
+        return f"{prefix_fixed.strip()}, {suffix_fixed}".strip()
+    return f"{prefix_fixed.strip()}, {suffix_fixed}".strip()
+
 
 def fix_self_corrections(text: str) -> str:
     """
-    Handles speech stutters and self-corrections.
-    e.g. 'let's meet at 5, no wait, 6 pm' -> 'let's meet at 6 pm'
-         'send it to John, I mean, David' -> 'send it to David'
+    Deterministic backtrack & self-correction (instant tidy, no LLM).
+    Handles:
+    - Total abandonment: 'forget all that, <fresh>' -> '<fresh>'
+    - Clause-drop: 'A. scratch that, B' -> 'A-minus-last + B'
+    - Inline: 'five, no, six', 'for three actually make it 3:30',
+      'to Dave ... to Marcus instead'
     """
-    # Pattern: [word/phrase] + [no wait | sorry | I mean | actually] + [replacement]
-    correction_patterns = [
-        r",?\s*(?:no wait|sorry|i mean|actually)\s*,?\s*",
-    ]
-    for pat in correction_patterns:
-        # If user explicitly said "no wait Friday", keep only what comes after "no wait"
-        parts = re.split(pat, text, flags=re.IGNORECASE)
-        if len(parts) > 1:
-            # We stitch with the latest correction
-            text = parts[-1].strip()
-            # If the correction is just a word or continuation, prepend the prefix before the mistake
-            prefix = parts[0].strip()
-            words_prefix = prefix.split()
-            words_repl = text.split()
-            # Keep prefix up to the last 1-2 words before the correction trigger
-            if len(words_prefix) > len(words_repl):
-                kept_prefix = " ".join(words_prefix[:-len(words_repl)])
-                text = f"{kept_prefix} {text}".strip()
-    return text
+    if not text or not text.strip():
+        return ""
+    out = text.strip()
+
+    # 1. Total abandonment: keep only what follows the cue.
+    for cue in TOTAL_ABANDON_RES:
+        m = re.search(cue, out, flags=re.IGNORECASE)
+        if m and m.end() < len(out):
+            suffix = out[m.end():].strip(" ,.-")
+            if suffix:
+                out = suffix
+                break
+
+    # 2. 'X, no, Y' implicit correction: drop X ("five, no, six chairs" -> "six chairs").
+    # Requires commas to avoid false positives like "no idea".
+    # Negative lookahead keeps 'no, no' (repeated-no cue) for the cue loop below.
+    out = re.sub(r"\b(?!no\b)(\w+)\s*,\s*no\s*,\s*(?!no\b)", "", out, flags=re.IGNORECASE)
+
+    # 2b. Repeated-no cue without commas: 'at 6 no no let's meet at 5pm'.
+    # Normalize 'no, no' / 'no no no' to a single split marker handled below.
+    # (Kept as text; the iterative cue loop splits on it.)
+
+    # 3. Bare 'five no six' (ASR missed commas): only when both sides are numbers.
+    # Also covers digits with optional am/pm: '6 no 5pm', '6:00 no 5pm'.
+    num_alt = "|".join(sorted(NUMBER_WORDS, key=len, reverse=True))
+    digit_alt = r"\d+(?::\d+)?\s*(?:am|pm)?"
+    out = re.sub(
+        rf"\b({num_alt})\s+no\s+({num_alt})\b",
+        r"\2", out, flags=re.IGNORECASE,
+    )
+    out = re.sub(
+        rf"\b({digit_alt})\s+no\s+({digit_alt})\b",
+        r"\2", out, flags=re.IGNORECASE,
+    )
+
+    # 4. 'for/at/to/on/by <old> actually [make it] <new>' -> keep preposition + new.
+    out = re.sub(
+        r"\b(for|at|to|on|by)\s+[\w:]+\s+actually\s+(?:make it\s+|change it to\s+|let(?:'s)? make it\s+)?",
+        r"\1 ", out, flags=re.IGNORECASE,
+    )
+
+    # 4b. Single bare 'no' as repeat marker: 'meet at 6 no lets meet at 5'.
+    # Only when the suffix repeats a 2-3 word phrase from the prefix
+    # (avoids 'no idea' / 'no smoking' false positives).
+    for m_no in list(re.finditer(r"(?<!\w)no(?!\w)", out, flags=re.IGNORECASE)):
+        left = out[:m_no.start()]
+        right = out[m_no.end():].strip(" ,")
+        if not left.strip() or not right:
+            continue
+        window = out[max(0, m_no.start() - 9):m_no.end() + 9]
+        if re.search(r"no\s*,?\s*no\b|\b(?:oh\s+wait|no\s+wait|wait\s+no)\b", window, flags=re.IGNORECASE):
+            continue
+        sw = right.split()
+        applied = False
+        for n in (3, 2):
+            if len(sw) >= n:
+                phrase = " ".join(sw[:n]).lower()
+                if len(phrase) < 4:
+                    continue
+                idx = left.lower().rfind(phrase)
+                if idx >= 0:
+                    head = left[:idx].strip(" ,.-")
+                    out = f"{head} {right}".strip() if head else right
+                    applied = True
+                    break
+        if applied:
+            break
+
+    # 5. Iterate inline/clause cues in order of appearance.
+    # Process longest cues first to avoid 'wait' shadowing 'no wait'.
+    # Plus bare repeated-no: 'no no', 'no, no', 'no no no' (very common in speech).
+    cues_sorted = sorted(set(INLINE_CUES + CLAUSE_DROP_CUES), key=len, reverse=True)
+    cue_alt = "|".join(re.escape(c) for c in cues_sorted)
+    no_repeat_alt = r"no(?:\s*,?\s*no)+"
+    cue_re = re.compile(rf",?\s*(?:\.\.\.\s*)?(?:{cue_alt}|{no_repeat_alt})\s*,?\s*", re.IGNORECASE)
+    # Bound iterations to avoid pathological loops.
+    for _ in range(5):
+        m = cue_re.search(out)
+        if not m:
+            break
+        prefix = out[:m.start()].strip(" ,.-")
+        suffix = out[m.end():].strip()
+        if not suffix:
+            out = prefix
+            break
+        if not prefix:
+            out = suffix
+            break
+        cue_text = m.group(0).lower()
+        # a) 'instead' pattern is most specific — try first.
+        if "instead" in suffix.lower():
+            merged = _merge_instead(prefix, _strip_explanation_prefix(suffix))
+            if merged:
+                out = merged
+                continue
+        # b) Clause-drop cues or sentence-like suffix: drop last clause of prefix.
+        suffix_is_sentence = len(suffix.split()) > 4 or re.match(r"^(we|you|he|she|they|it|let'?s|send|book|remind)\b", suffix, re.I)
+        is_clause_drop = any(c in cue_text for c in ("scratch that", "never mind", "let me rephrase", "forget it", "ignore it"))
+        if is_clause_drop or suffix_is_sentence:
+            # Drop explanation prefix like 'Dave is out on PTO'
+            suffix = _strip_explanation_prefix(suffix)
+            # Drop last clause (after last comma/semicolon/period) of prefix
+            parts = re.split(r"[.;]\s*|,\s*(?=(?:and|but|or)\b)", prefix)
+            if len(parts) > 1 and len(suffix.split()) > 4:
+                # Long replacement replaces last clause
+                out = (", ".join(parts[:-1]) + " " + suffix).strip() if len(parts) > 2 else suffix
+                # If prefix head still has verb context ('Send the invite'), re-merge via instead logic
+                if "instead" in suffix.lower():
+                    merged = _merge_instead(prefix, suffix)
+                    if merged:
+                        out = merged
+                # Common case: 'Send invite to Dave ... send it to Marcus' without 'instead'
+                if out == suffix and re.search(r"\bto\s+\w+\b", prefix, re.I) and re.search(r"\bto\s+\w+\b", suffix, re.I):
+                    mt = re.search(r"\bto\s+([A-Za-z][\w]*)\b", suffix, re.I)
+                    if mt:
+                        head = re.sub(r"\bto\s+\w+\b.*$", f"to {mt.group(1)}", prefix, flags=re.I)
+                        tail = re.sub(r"^.*?\bto\s+\w+\b\s*", "", suffix, count=1, flags=re.I)
+                        out = f"{head} {tail}".strip() if tail else head
+                continue
+        # b2) Repeated clause: 'Hey let's meet at 6' + 'let's meet at 5pm'
+        # -> 'Hey let's meet at 5pm'. Preserves greeting, drops retracted time.
+        sw = suffix.split()
+        repeated = False
+        for n in (3, 2, 1):
+            if len(sw) >= n:
+                phrase = " ".join(sw[:n]).lower()
+                # Skip trivial single words that cause false cuts ('to', 'at', 'i')
+                if n == 1 and phrase.strip("'") in ("to", "at", "a", "the", "i", "it"):
+                    continue
+                idx = prefix.lower().rfind(phrase)
+                if idx > 0:
+                    head = prefix[:idx].strip(" ,.-")
+                    out = f"{head} {suffix}".strip()
+                    repeated = True
+                    break
+                elif idx == 0:
+                    out = suffix
+                    repeated = True
+                    break
+        if repeated:
+            continue
+        # c) Short replacement: anchor on preposition for times/numbers,
+        # else swap last N words of prefix.
+        n_repl = len(suffix.split())
+        pw = prefix.split()
+        is_no_repeat = bool(re.fullmatch(r"[\s,.]*no(?:\s*,?\s*no)+[\s,.]*", cue_text, re.IGNORECASE))
+        if is_no_repeat and n_repl <= 4:
+            # 'I want tea no no coffee please' -> replace last entity only.
+            # 'We need five chairs no no six tables' -> replace from last number.
+            m_num_suf = re.match(
+                r"(?:\d+(?::\d+)?\s*(?:am|pm)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b",
+                suffix, flags=re.IGNORECASE,
+            )
+            num_hits = list(re.finditer(
+                r"\b(?:\d+(?::\d+)?\s*(?:am|pm)?|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b",
+                prefix, flags=re.IGNORECASE,
+            ))
+            if m_num_suf and num_hits:
+                out = f"{prefix[:num_hits[-1].start()].strip()} {suffix}".strip()
+            elif len(pw) >= 1:
+                out = f"{' '.join(pw[:-1])} {suffix}".strip()
+            else:
+                out = suffix
+            continue
+        m_prep = re.search(r"\b(at|for|to|on|by|until|till)\b", prefix, flags=re.IGNORECASE)
+        m_time = re.match(
+            r"(?:\d|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)",
+            suffix, flags=re.IGNORECASE,
+        ) or re.search(r"\b(?:am|pm|o'?clock)\b", suffix, flags=re.IGNORECASE)
+        if m_prep and m_time and n_repl <= 4:
+            # Keep through last preposition: 'we meet at 5' + '6 pm' -> 'we meet at 6 pm'
+            prep_hits = list(re.finditer(r"\b(at|for|to|on|by|until|till)\b", prefix, flags=re.IGNORECASE))
+            cut = prep_hits[-1].start()
+            out = f"{prefix[:cut].strip()} {prep_hits[-1].group(0)} {suffix}".strip()
+        elif n_repl <= 3 and len(pw) > n_repl:
+            out = f"{' '.join(pw[:-n_repl])} {suffix}".strip()
+        else:
+            # Fallback: drop last comma-segment
+            segs = re.split(r",\s*", prefix)
+            out = f"{', '.join(segs[:-1])} {suffix}".strip() if len(segs) > 1 else suffix
+    out = re.sub(r"\s+", " ", out).strip(" ,.-")
+    return out
 
 
 def fix_question_punctuation(text: str) -> str:
@@ -123,6 +423,9 @@ def fix_question_punctuation(text: str) -> str:
         return ""
 
     text = text.strip()
+    # Already terminated dialogue quotes: She said, "Don't touch that button."
+    if re.search(r'["\u201c\u201d][.?!]["\u201c\u201d]?\s*$', text) or text.rstrip().endswith('."'):
+        return text
     # If it already ends with '?' we are good
     if text.endswith("?"):
         return text
@@ -160,6 +463,129 @@ def fix_question_punctuation(text: str) -> str:
     return text
 
 
+def apply_code_awareness(text: str) -> str:
+    """
+    Deterministic syntax & code awareness (instant tidy, no LLM).
+    - Spoken symbols: 'open paren' -> '(' (always safe).
+    - Operators 'equals/plus/minus': only when code hint present.
+    - CLI flags: 'with detached flag' -> '-d'.
+    - Acronyms: 'json' -> 'JSON', 'postgres' -> 'PostgreSQL'.
+    - Casing: 'camel case foo bar' -> 'fooBar'.
+    """
+    if not text:
+        return ""
+    out = text
+    for pattern, replacement in SPOKEN_SYMBOLS_MULTI:
+        out = re.sub(pattern, replacement, out, flags=re.IGNORECASE)
+    is_code = bool(CODE_HINT_RE.search(out))
+    if is_code:
+        for pattern, replacement in SPOKEN_OPERATORS_CODE_ONLY:
+            out = re.sub(pattern, replacement, out, flags=re.IGNORECASE)
+        # Spoken numbers in code: 'plus one' -> '+ 1'
+        for word, digit in CODE_NUMBER_WORDS.items():
+            out = re.sub(rf"\b{word}\b", digit, out, flags=re.IGNORECASE)
+    for pattern, replacement in CLI_FLAG_PHRASES:
+        out = re.sub(pattern, replacement, out, flags=re.IGNORECASE)
+    for pattern, replacement in TECH_ACRONYMS:
+        out = re.sub(pattern, replacement, out, flags=re.IGNORECASE)
+
+    def _to_camel(m: re.Match) -> str:
+        words = m.group(1).strip().split()
+        if not words:
+            return m.group(0)
+        return words[0].lower() + "".join(w.capitalize() for w in words[1:])
+
+    def _to_snake(m: re.Match) -> str:
+        return "_".join(w.lower() for w in m.group(1).strip().split())
+
+    def _to_kebab(m: re.Match) -> str:
+        return "-".join(w.lower() for w in m.group(1).strip().split())
+
+    def _to_screaming(m: re.Match) -> str:
+        return "_".join(w.upper() for w in m.group(1).strip().split())
+
+    out = re.sub(r"\bcamel case\s+([a-z]+(?:\s+[a-z]+){0,4})", _to_camel, out, flags=re.IGNORECASE)
+    out = re.sub(r"\bsnake case\s+([a-z]+(?:\s+[a-z]+){0,4})", _to_snake, out, flags=re.IGNORECASE)
+    out = re.sub(r"\bkebab case\s+([a-z]+(?:\s+[a-z]+){0,4})", _to_kebab, out, flags=re.IGNORECASE)
+    out = re.sub(
+        r"\b(?:screaming snake case|constant case)\s+([a-z]+(?:\s+[a-z]+){0,4})",
+        _to_screaming, out, flags=re.IGNORECASE,
+    )
+    # Tidy symbol spacing: 'count + 1' stays, '( req' -> '(req', 'res ,' -> 'res,'.
+    out = re.sub(r"\(\s+", "(", out)
+    out = re.sub(r"\s+\)", ")", out)
+    out = re.sub(r"\s+,", ",", out)
+    return out
+
+
+def format_dialogue_quotes(text: str) -> str:
+    """
+    'She said don't touch that button' -> 'She said, "Don't touch that button."'
+    Only triggers on explicit '<Speaker> said/told/asked ...' to stay precise.
+    """
+    def _repl(m: re.Match) -> str:
+        speaker, verb, content = m.group(1), m.group(2), m.group(3).strip()
+        if not content:
+            return m.group(0)
+        content = content.strip(" ,.-")
+        if content and content[0].islower():
+            content = content[0].upper() + content[1:]
+        if content and content[-1] not in ".!?":
+            content += "."
+        return f'{speaker} {verb}, "{content}"'
+    return re.sub(
+        r"\b([A-Za-z][\w]*)\s+(said|told me|asked)\s+(?:that\s+)?([^\"\n]+?)(?=[.!?]|$)",
+        _repl, text,
+    )
+
+
+def format_automatic_list(text: str) -> str:
+    """
+    Explicit enumerations -> markdown list. Returns '' if no confident trigger.
+    Handles:
+    - Headers: 'action items for tomorrow morning: <items>'
+    - Enumerators: 'first ..., second ..., third ...'
+    """
+    t = text.strip()
+    if not t or "\n* " in t:
+        return ""
+    # 1. Enumerator split: need 2+ of first/second/third/...
+    enum_hits = ENUM_SPLIT_RE.findall(t)
+    if len(re.findall(r"\bfirst\b|\bsecond\b|\bthird\b|\bfourth\b|\bfifth\b", t, re.I)) >= 2:
+        parts = [p.strip(" ,.-") for p in ENUM_SPLIT_RE.split(t) if p.strip(" ,.-")]
+        # Drop lead-in like 'first we check logs' keeps full clause
+        items = [p[0].upper() + p[1:] if p and p[0].islower() else p for p in parts]
+        return "\n".join(f"* {it}" for it in items if it)
+    # 2. Header split: 'action items for X <items>'
+    low = t.lower()
+    header = next((h for h in LIST_HEADERS if low.startswith(h)), None)
+    if header:
+        rest = t[len(header):].strip(" :-")
+        # Peel 'for tomorrow morning' style scope as title
+        m = re.match(r"(for\s+.+?)\s+(review|deploy|run|ping|send|check|restart|alert|book|call|email|merge|test|build)\b(.*)$", rest, re.I | re.S)
+        if m:
+            title, first_verb, tail = m.group(1), m.group(2), m.group(3)
+            rest_items = first_verb + tail
+        else:
+            title, rest_items = "", rest
+        # Split items on strong delimiters + task-verb boundaries
+        chunks = re.split(r"\s+and then\s+|\s*;\s*|\s+then\s+", rest_items, flags=re.I)
+        items: list[str] = []
+        verb_alt = "|".join(SPLIT_VERBS)
+        for ch in chunks:
+            # Further split 'review PRs deploy staging' on verb lookahead
+            subs = re.split(rf",\s*|\s+and\s+|(?<=\w)\s+(?=(?:{verb_alt})\b)", ch, flags=re.I)
+            items.extend(s.strip(" ,.-") for s in subs if s.strip(" ,.-"))
+        items = [i[0].upper() + i[1:] if i and i[0].islower() else i for i in items]
+        items = [i for i in items if len(i.split()) >= 2 or len(items) > 1]
+        if len(items) >= 2:
+            head = f"{header[0].upper() + header[1:]}"
+            if title:
+                head += f" {title.strip()}"
+            return f"{head}:\n" + "\n".join(f"* {it}" for it in items)
+    return ""
+
+
 def enhance_text(text: str, apply_slang: bool = True, apply_questions: bool = True) -> str:
     """
     Main enhancement entrypoint (Approach 1: Instant, 0 VRAM).
@@ -169,24 +595,50 @@ def enhance_text(text: str, apply_slang: bool = True, apply_questions: bool = Tr
 
     out = text.strip()
 
-    # 1. Fix self-corrections / stutters
+    # 1. Fix self-corrections / stutters (Backtrack, no LLM)
     out = fix_self_corrections(out)
 
-    # 2. Apply slang, contractions, and phonetic replacements
+    # 2. Code awareness: symbols, CLI flags, acronyms, casing (no LLM)
+    out = apply_code_awareness(out)
+
+    # 3. Apply slang, contractions, and phonetic replacements
     if apply_slang:
         for pattern, replacement in SLANG_AND_PHONETIC_REPLACEMENTS:
             out = re.sub(pattern, replacement, out, flags=re.IGNORECASE)
 
-    # 3. Capitalize first letter of clauses and pronoun "I"
-    out = re.sub(r"\b(?:i)\b", "I", out)
-    if out and out[0].islower():
-        out = out[0].upper() + out[1:]
+    # 4. Dialogue quotes: 'She said ...' -> 'She said, "..."'
+    out = format_dialogue_quotes(out)
 
-    # 4. Fix question and sentence punctuation
-    if apply_questions:
+    # 5. Automatic list layout (explicit headers/enumerators only)
+    listed = format_automatic_list(out)
+    if listed:
+        lines = []
+        for ln in listed.split("\n"):
+            ln = re.sub(r"[ \t]+", " ", ln).strip()
+            ln = re.sub(r"\s+([,.?!:])", r"\1", ln)
+            if ln.startswith("* ") and len(ln) > 2 and ln[2].islower():
+                ln = "* " + ln[2].upper() + ln[3:]
+            elif not ln.startswith("* ") and ln and ln[0].islower():
+                ln = ln[0].upper() + ln[1:]
+            if ln:
+                lines.append(ln)
+        return "\n".join(lines).strip()
+
+    # 6. Capitalize first letter of clauses and pronoun "I" (skip code/CLI to preserve case)
+    is_code_line = bool(re.match(
+        r"^(const|let|var|export|import|docker|kubectl|git|npm|async|function|class)\b",
+        out.strip(), flags=re.IGNORECASE,
+    ))
+    if not is_code_line:
+        out = re.sub(r"\b(?:i)\b", "I", out)
+        if out and out[0].islower():
+            out = out[0].upper() + out[1:]
+
+    # 7. Fix question and sentence punctuation (skip code lines ending in symbols)
+    if apply_questions and not is_code_line:
         out = fix_question_punctuation(out)
 
-    # Clean redundant spaces & punctuation
+    # Clean redundant spaces & punctuation (single-line path: no newlines here)
     out = re.sub(r"\s+", " ", out)
     out = re.sub(r"\s+([,.?!])", r"\1", out)
     out = re.sub(r"([,.?!]){2,}", r"\1", out)

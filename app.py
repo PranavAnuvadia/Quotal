@@ -25,7 +25,15 @@ try:
 except Exception:
     pass
 
-LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "quotal.log")
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+try:
+    os.chdir(PROJECT_ROOT)
+except Exception:
+    pass
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+LOG_FILE = os.path.join(PROJECT_ROOT, "quotal.log")
 
 class SafeLogIO:
     def __init__(self, log_path):
@@ -126,6 +134,10 @@ class QuotalApp:
         # 1. Overlay Pill
         print("[App] Initializing Floating Pill...")
         self.overlay = OverlayPill()
+        current_pill = self.settings.get("pill_style", "bloom")
+        if current_pill not in ("bloom", "wispr"):
+            current_pill = "bloom"
+        self.overlay.set_style(current_pill)
         
         # 2. Audio Recorder (persistent WASAPI stream)
         print("[App] Initializing Audio Recorder...")
@@ -242,6 +254,43 @@ class QuotalApp:
         elif message.startswith("model:"):
             key = message.split(":", 1)[1]
             self.switch_model(key)
+        elif message.startswith("pill:"):
+            key = message.split(":", 1)[1]
+            self.preview_pill_style(key)
+
+    def preview_pill_style(self, key: str):
+        """Apply a new pill theme and flash it briefly so the user sees it live."""
+        # if key not in ("orb", "ember", "meter", "halo", "bloom", "nova", "pulse", "wispr", "bloomcs"):
+        if key not in ("bloom", "wispr"):
+            return
+        try:
+            s = settings_manager.load_settings()
+            s["pill_style"] = key
+            settings_manager.save_settings(s)
+            self.settings["pill_style"] = key
+        except Exception:
+            pass
+        try:
+            with self._lock:
+                recording = self.is_recording
+            # Push theme to the live pill host (no restart needed)
+            self.overlay.set_style(key)
+            if recording:
+                return  # Don't hijack the pill mid-dictation
+            self.overlay.show("Listening...")
+            threading.Timer(1.4, self._hide_pill_preview).start()
+        except Exception as e:
+            print(f"[App] Pill preview failed: {e}")
+
+    def _hide_pill_preview(self):
+        """Hides the preview pill, unless a real dictation started meanwhile."""
+        with self._lock:
+            if self.is_recording:
+                return
+        try:
+            self.overlay.hide()
+        except Exception:
+            pass
 
     def _play_chime(self, freq: int, duration: int):
         """Plays subtle audio feedback tone in background."""
