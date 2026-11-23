@@ -23,7 +23,7 @@
     --line-2: rgba(236,231,221,.15);
     --accent: #ff5d1f;
     --accent-ink: #ff8a5c;
-    --accent-wash: rgba(255,93,31,.11);
+    --accent-wash: rgba(var(--accent-rgb, 255,93,31),.11);
     --green: #7ec89b;
     --red: #e07a7a;
     --radius: 12px;
@@ -43,10 +43,10 @@
     content: ""; position: fixed; inset: 0; z-index: 200; pointer-events: none; opacity: .05;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
   }
-  ::selection { background: rgba(255,93,31,.32); }
+  ::selection { background: rgba(var(--accent-rgb, 255,93,31),.32); }
   button { font: inherit; color: inherit; background: none; border: none; }
   :focus { outline: none; }
-  :focus-visible { outline: 2px solid rgba(255,93,31,.7); outline-offset: 2px; border-radius: 6px; }
+  :focus-visible { outline: 2px solid rgba(var(--accent-rgb, 255,93,31),.7); outline-offset: 2px; border-radius: 6px; }
 
   .app { display: grid; grid-template-columns: 248px 1fr; height: 100%; }
 
@@ -114,7 +114,7 @@
   .meter i:nth-child(10){ height: 40%; } .meter i:nth-child(11){ height: 65%; } .meter i:nth-child(12){ height: 28%; }
 
   /* ============ MAIN ============ */
-  main { overflow: hidden; display: flex; flex-direction: column; min-width: 0; background: radial-gradient(1100px 300px at 50% -80px, rgba(255,93,31,.05), transparent 70%), var(--bg); }
+  main { overflow: hidden; display: flex; flex-direction: column; min-width: 0; background: radial-gradient(1100px 300px at 50% -80px, rgba(var(--accent-rgb, 255,93,31),.05), transparent 70%), var(--bg); }
   .scroll { overflow-y: auto; flex: 1; padding: 0 48px 80px; scroll-behavior: smooth; }
   .scroll::-webkit-scrollbar { width: 10px; }
   .scroll::-webkit-scrollbar-thumb { background: rgba(236,231,221,.11); border-radius: 10px; border: 3px solid var(--bg); }
@@ -149,7 +149,7 @@
     border: 1px solid var(--line); border-radius: 10px; padding: 0 7px 0 12px; height: 38px;
     transition: border-color .18s;
   }
-  .search:focus-within { border-color: rgba(255,93,31,.5); }
+  .search:focus-within { border-color: rgba(var(--accent-rgb, 255,93,31),.5); }
   .search svg { width: 14px; height: 14px; color: var(--faint); flex-shrink: 0; }
   .search input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--ink); font: inherit; font-size: 13.5px; user-select: text; }
   .search input::placeholder { color: var(--fainter); }
@@ -171,8 +171,8 @@
   .btn svg { width: 15px; height: 15px; color: var(--muted); transition: color .15s; flex-shrink: 0; }
   .btn:hover svg { color: var(--ink); }
   .btn.active {
-    background: linear-gradient(180deg, rgba(255,93,31,.22), rgba(255,93,31,.1)), var(--card);
-    border-color: rgba(255,93,31,.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 3px rgba(255,93,31,.1);
+    background: linear-gradient(180deg, rgba(var(--accent-rgb, 255,93,31),.22), rgba(var(--accent-rgb, 255,93,31),.1)), var(--card);
+    border-color: rgba(var(--accent-rgb, 255,93,31),.55); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 3px rgba(var(--accent-rgb, 255,93,31),.1);
   }
   .btn.active svg { color: var(--accent-ink); }
   .btn.danger:hover { color: #f0a8a8; border-color: rgba(224,122,122,.5); background: linear-gradient(180deg, rgba(224,122,122,.14), rgba(224,122,122,.05)), var(--card); }
@@ -196,7 +196,7 @@
     display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px;
     border-radius: 99px; background: var(--accent); color: #fff;
     font-family: var(--mono); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
-    box-shadow: 0 2px 10px rgba(255,93,31,.45), inset 0 1px 0 rgba(255,255,255,.25);
+    box-shadow: 0 2px 10px rgba(var(--accent-rgb, 255,93,31),.45), inset 0 1px 0 rgba(255,255,255,.25);
   }
   .sel-count-label { color: var(--muted); font-size: 12.5px; font-weight: 500; }
   .sel-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -247,7 +247,7 @@
   .entry.checked { background: var(--accent-wash); }
   .entry .time { font-family: var(--mono); font-size: 11.5px; color: var(--faint); padding-top: 4px; font-variant-numeric: tabular-nums; }
   .entry .text { line-height: 1.62; font-size: 14px; word-break: break-word; user-select: text; color: var(--ink); }
-  .entry .text mark { background: rgba(255,93,31,.3); color: inherit; border-radius: 3px; padding: 0 1px; }
+  .entry .text mark { background: rgba(var(--accent-rgb, 255,93,31),.3); color: inherit; border-radius: 3px; padding: 0 1px; }
   .entry .meta { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 5px; }
   .entry .actions { display: flex; gap: 6px; align-items: center; opacity: 0; transition: opacity .15s; padding-top: 1px; }
   .entry:hover .actions, .entry.selected .actions { opacity: 1; }
@@ -318,10 +318,10 @@
     color: var(--ink);
   }
   .filter-chip.active {
-    background: rgba(255, 122, 26, 0.12);
+    background: rgba(var(--accent-rgb, 255,122,26),0.12);
     border-color: var(--accent);
     color: var(--accent-ink);
-    box-shadow: 0 0 14px rgba(255, 122, 26, 0.2);
+    box-shadow: 0 0 14px rgba(var(--accent-rgb, 255,122,26),0.2);
   }
   .filter-chip#filter-streaming.active {
     background: rgba(56, 189, 248, 0.12);
@@ -400,7 +400,7 @@
     border-radius: 8px; transition: background .15s, border-color .15s;
   }
   .model:hover { background: rgba(255,255,255,.025); }
-  .model.active { background: rgba(255,122,26,.04); border-color: rgba(255,122,26,.2); }
+  .model.active { background: rgba(var(--accent-rgb, 255,122,26),.04); border-color: rgba(var(--accent-rgb, 255,122,26),.2); }
   .model .radio { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--fainter); display: grid; place-items: center; flex-shrink: 0; margin-top: 2px; transition: border-color .15s; }
   .model.active .radio { border-color: var(--accent); }
   .model.active .radio::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: block; }
@@ -593,8 +593,8 @@
     border-color: var(--line-2);
   }
   .lang-card.active {
-    background: rgba(255,93,31,.08);
-    border-color: rgba(255,93,31,.45);
+    background: rgba(var(--accent-rgb, 255,93,31),.08);
+    border-color: rgba(var(--accent-rgb, 255,93,31),.45);
   }
   .lang-info {
     min-width: 0;
@@ -651,7 +651,7 @@
   .enh.active .radio::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: block; }
   .enh-title { font-size: 14px; font-weight: 650; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; letter-spacing: -.01em; }
   .tag { font-family: var(--mono); font-size: 10.5px; color: var(--muted); border: 1px solid var(--line-2); padding: 2px 8px; border-radius: 99px; white-space: nowrap; font-weight: 400; }
-  .enh.active .tag { color: var(--ink); border-color: rgba(255,93,31,.5); }
+  .enh.active .tag { color: var(--ink); border-color: rgba(var(--accent-rgb, 255,93,31),.5); }
   .enh-desc { color: var(--muted); font-size: 13px; line-height: 1.6; margin-top: 4px; max-width: 58em; }
   .enh-desc code, .row .d code { font-family: var(--mono); font-size: 11px; background: rgba(236,231,221,.06); padding: 1px 6px; border-radius: 5px; color: var(--ink); }
   /* recording pill picker */
@@ -803,12 +803,12 @@
   }
   .dl-left { flex: 1; min-width: 0; }
   .dl-bar { height: 4px; border-radius: 4px; background: rgba(127,127,127,.28); margin-top: 7px; overflow: hidden; }
-  .dl-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .3s; }
+  .dl-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
   .dl-bar i.ind { width: 30% !important; animation: dlslide 1.1s linear infinite; }
-  @keyframes dlslide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+  @keyframes dlslide { from { transform: translateX(-100%); } to { transform: translateX(334%); } }
   .update-banner {
     display: flex; align-items: center; gap: 12px; margin: 14px 26px 0; padding: 11px 14px;
-    background: rgba(255,122,26,.07); border: 1px solid rgba(255,122,26,.35);
+    background: rgba(var(--accent-rgb, 255,122,26),.07); border: 1px solid rgba(var(--accent-rgb, 255,122,26),.35);
     border-radius: 12px; font-size: 13px;
   }
   .upd-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: pvbreathe 2s ease-in-out infinite; }
@@ -918,19 +918,19 @@
     --line-2: rgba(28,26,23,.14);
     --accent: #ff5d1f;
     --accent-ink: #e04a10;
-    --accent-wash: rgba(255,93,31,.08);
+    --accent-wash: rgba(var(--accent-rgb, 255,93,31),.08);
     --green: #258350;
     --red: #c94040;
   }
   html[data-theme="light"] body::after { opacity: .018; }
   html[data-theme="light"] aside {
-    background: radial-gradient(450px 300px at 0% 0%, rgba(255, 93, 31, .07), transparent 70%), var(--panel);
+    background: radial-gradient(450px 300px at 0% 0%, rgba(var(--accent-rgb, 255,93,31),.07), transparent 70%), var(--panel);
   }
   html[data-theme="light"] main {
     background:
-      radial-gradient(850px 450px at 100% 0%, rgba(255, 93, 31, .13), rgba(255, 140, 70, .05) 50%, transparent 75%),
-      radial-gradient(900px 380px at 10% -60px, rgba(255, 93, 31, .09), transparent 65%),
-      radial-gradient(1200px 300px at 50% -80px, rgba(255, 93, 31, .08), transparent 70%),
+      radial-gradient(850px 450px at 100% 0%, rgba(var(--accent-rgb, 255,93,31),.13), rgba(255, 140, 70, .05) 50%, transparent 75%),
+      radial-gradient(900px 380px at 10% -60px, rgba(var(--accent-rgb, 255,93,31),.09), transparent 65%),
+      radial-gradient(1200px 300px at 50% -80px, rgba(var(--accent-rgb, 255,93,31),.08), transparent 70%),
       var(--bg);
   }
   html[data-theme="light"] kbd {
@@ -984,9 +984,9 @@
     box-shadow: 0 3px 8px rgba(0,0,0,.07), inset 0 1px 0 #fff;
   }
   html[data-theme="light"] .btn.active {
-    background: linear-gradient(180deg, rgba(255,93,31,.16), rgba(255,93,31,.08)), #ffffff;
-    border-color: rgba(255,93,31,.5);
-    box-shadow: 0 0 0 3px rgba(255,93,31,.12);
+    background: linear-gradient(180deg, rgba(var(--accent-rgb, 255,93,31),.16), rgba(var(--accent-rgb, 255,93,31),.08)), #ffffff;
+    border-color: rgba(var(--accent-rgb, 255,93,31),.5);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 255,93,31),.12);
   }
   html[data-theme="light"] .btn.danger:hover {
     color: #b91c1c; border-color: rgba(220,38,38,.35);
@@ -1239,40 +1239,289 @@
     background: #ffffff; border-color: rgba(28,26,23,.12);
     box-shadow: 0 1px 3px rgba(0,0,0,.06);
   }
+  /* Dashboard materials and motion */
+  :root {
+    color-scheme: dark;
+    --bg: #101114;
+    --panel: #15161a;
+    --card: #191b20;
+    --card-2: #22242a;
+    --ink: #f6f3ef;
+    --muted: #b8b7bf;
+    --faint: #92929e;
+    --fainter: #787984;
+    --line: rgba(237,236,248,.09);
+    --line-2: rgba(237,236,248,.16);
+    --accent-ink: #ffad87;
+    --surface: rgba(23,25,30,.90);
+    --hover-surface: rgba(255,255,255,.045);
+    --hero: #1c1b22;
+    --hero-end: #171820;
+    --atmosphere: rgba(109,91,161,.17);
+    --gradient-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.76' numOctaves='1' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='.36'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+    --signal: #ffad87;
+    --signal-line: rgba(255,184,151,.20);
+    --depth: 0 18px 42px -24px rgba(0,0,0,.75);
+    --spring: cubic-bezier(.16,1,.3,1);
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f4f1ed;
+    --panel: #eeebe7;
+    --card: #fdfbf8;
+    --card-2: #f5eee8;
+    --ink: #241d20;
+    --muted: #635861;
+    --faint: #726570;
+    --fainter: #786b73;
+    --accent-ink: #a63e29;
+    --surface: rgba(255,253,250,.91);
+    --hover-surface: rgba(113,65,63,.055);
+    --hero: #fff8f0;
+    --hero-end: #f7edf1;
+    --atmosphere: rgba(147,120,177,.15);
+    --gradient-grain: none;
+    --signal: #a84636;
+    --signal-line: rgba(164,68,61,.21);
+    --depth: 0 18px 42px -24px rgba(82,44,47,.26);
+  }
+  body::after { opacity: .028; }
+  aside, html[data-theme="light"] aside {
+    background: var(--gradient-grain), linear-gradient(160deg, var(--atmosphere), transparent 45%), var(--panel);
+    background-blend-mode: soft-light, normal;
+    padding-top: 25px;
+  }
+  .brand { padding: 3px 8px 28px; }
+  .brand .name { font-size: 18px; }
+  .brand .sub { color: var(--faint); font-size: 10px; letter-spacing: .06em; }
+  nav { position: relative; gap: 4px; }
+  .nav-indicator {
+    position: absolute; inset: 0 0 auto; height: 40px; pointer-events: none;
+    border: 1px solid var(--line-2); border-radius: 10px;
+    background: linear-gradient(100deg, var(--accent-wash), transparent 82%), var(--card-2);
+    box-shadow: inset 0 1px 0 var(--line), 0 3px 9px rgba(0,0,0,.09);
+    transform: translate3d(0,var(--nav-offset,0px),0);
+    transition: transform .45s var(--spring);
+  }
+  .nav-indicator::after {
+    content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px;
+    border-radius: 3px; background: var(--signal);
+  }
+  nav .nav-item { position: relative; width: 100%; height: 40px; text-align: left; }
+  nav .nav-item.active, html[data-theme="light"] nav .nav-item.active {
+    background: transparent; border-color: transparent; box-shadow: none;
+  }
+  .nav-item.active svg { color: var(--accent-ink); opacity: 1; }
+  .nav-item .count { color: var(--faint); }
+  .hint-card { margin-top: 22px; }
+  .hint-card, .engine, html[data-theme="light"] .hint-card, html[data-theme="light"] .engine {
+    background: linear-gradient(145deg, var(--hover-surface), transparent 68%), var(--surface);
+    border: 1px solid var(--line-2); box-shadow: inset 0 1px 0 var(--line), var(--depth);
+  }
+  .engine .s-row { color: var(--ink); }
+  .meter { align-items: center; gap: 4px; }
+  .meter i:nth-child(3n+2) { background: var(--signal); opacity: .75; }
+  .meter i:nth-child(3n) { background: var(--signal-line); opacity: 1; }
+
+  main, html[data-theme="light"] main {
+    background: var(--gradient-grain), radial-gradient(ellipse at 100% 0%, var(--atmosphere), transparent 50%), var(--bg);
+    background-blend-mode: soft-light, normal;
+  }
+  .scroll { scroll-behavior: auto; }
+  .view { max-width: 880px; padding-top: 38px; }
+  .view.active > * { animation: dashboard-enter .46s var(--spring) both; }
+  .view.active > :nth-child(2) { animation-delay: .035s; }
+  .view.active > :nth-child(3) { animation-delay: .065s; }
+  .view.active > :nth-child(n+4) { animation-delay: .085s; }
+  @keyframes dashboard-enter {
+    from { opacity: 0; transform: translate3d(0,9px,0); }
+    to { opacity: 1; transform: none; }
+  }
+  .view .head h1 { font-size: clamp(34px, 4.5vw, 52px); font-weight: 650; }
+  .view .head h1 em { color: var(--accent-ink); }
+  .history-overview {
+    overflow: hidden; margin-bottom: 19px;
+    border-radius: 22px; border: 1px solid var(--line-2);
+    background: var(--gradient-grain), linear-gradient(125deg, var(--hero), var(--hero-end));
+    background-blend-mode: soft-light, normal;
+    box-shadow: inset 0 1px 0 var(--line), var(--depth);
+  }
+  .history-overview .head { margin: 0; padding: 27px 29px 25px; }
+  .history-overview .eyebrow-row { justify-content: flex-start; flex-wrap: wrap; gap: 5px 13px; margin-bottom: 12px; }
+  .history-overview .today-line { color: var(--muted); }
+  .history-overview .today-line:empty { display: none; }
+  .history-overview .today-line:not(:empty)::before { content: "·"; margin-right: 13px; }
+  .history-overview .lead { margin-top: 10px; }
+  .history-overview .ledger {
+    display: grid; grid-template-columns: repeat(4,minmax(0,1fr));
+    background: var(--hover-surface); margin: 0; border-top: 1px solid var(--line-2); border-bottom: 0;
+  }
+  .history-overview .ledger div, .history-overview .ledger div:last-child { padding: 13px 16px 15px 21px; margin: 0; }
+  .history-overview .ledger b { font-size: 25px; letter-spacing: -.045em; line-height: 1.2; }
+  .history-overview .ledger span { display: block; margin-top: 4px; letter-spacing: .075em; }
+  .search, html[data-theme="light"] .search { background: var(--surface); }
+  .search, .btn { height: 42px; }
+  .btn, .btn-sm, .icon-btn, .theme-opt, .theme-quick-btn {
+    transition: transform .3s var(--spring), opacity .2s var(--spring);
+  }
+  .btn:active, .btn-sm:active, .icon-btn:active, .theme-opt:active, .theme-quick-btn:active { transform: scale(.96); }
+  .day-group { margin-top: 18px; }
+  .day { background: var(--bg); margin-bottom: 7px; padding-inline: 4px; }
+  .group { display: grid; gap: 7px; border: 0; }
+  .entry, .entry + .entry {
+    position: relative; isolation: isolate;
+    grid-template-columns: 64px minmax(0,1fr) auto;
+    padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); transition: transform .32s var(--spring);
+  }
+  .entry.in-select { grid-template-columns: 18px 64px minmax(0,1fr) auto; }
+  .entry::before {
+    content: ""; position: absolute; z-index: -1; inset: -1px; border-radius: inherit;
+    border: 1px solid var(--line-2); background: var(--hover-surface); pointer-events: none;
+    opacity: 0; transition: opacity .25s var(--spring);
+  }
+  .entry:is(:hover,:focus-within,.selected,.checked)::before { opacity: 1; }
+  .entry:hover { transform: translate3d(0,-1px,0); }
+  .entry .actions { opacity: .68; }
+  .entry:is(:hover,:focus-within,.selected,.checked) .actions { opacity: 1; }
+  .entry .icon-btn { width: 32px; height: 32px; }
+  .entry .icon-btn.ok { background: var(--card-2); box-shadow: 0 0 0 3px var(--hover-surface); }
+  .icon-btn.ok svg { animation: copy-confirm .42s var(--spring) both; }
+  @keyframes copy-confirm {
+    0% { transform: scale(.55) rotate(-13deg); opacity: .3; }
+    55% { transform: scale(1.18); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .empty { background: var(--surface); border-style: solid; padding-block: 40px; }
+  .toast, .modal-bg { transition-timing-function: var(--spring); }
+  .toast.is-error svg { color: var(--red); }
+  .modal { transform: translate3d(0,8px,0) scale(.975); transition: transform .35s var(--spring); }
+  .modal-bg.show .modal { transform: none; }
+
+  /* Settings index and language groups */
+  .symbol-library { position: absolute; width: 0; height: 0; overflow: hidden; }
+  .settings-shell { display: grid; grid-template-columns: 137px minmax(0,1fr); gap: 19px; align-items: start; }
+  .settings-index { position: sticky; top: 12px; display: grid; gap: 3px; }
+  .settings-index button {
+    display: flex; gap: 8px; align-items: center; padding: 9px 8px; border-radius: 7px;
+    color: var(--muted); text-align: left; font-size: 13px; cursor: pointer;
+  }
+  .settings-index button:hover, .settings-index button[aria-current] { background: var(--card-2); color: var(--ink); }
+  .settings-index button[aria-current] .ui-icon { color: var(--accent-ink); }
+  .settings-index .ui-icon {
+    width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor;
+    stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .settings-content > section:not([hidden]) { animation: dashboard-enter .28s var(--spring) both; }
+  .settings-content > section > .section-title:first-child { margin-top: 0; padding-top: 9px; }
+  #view-languages .lang-grid { grid-template-columns: repeat(auto-fill,minmax(184px,1fr)); gap: 8px; }
+  #view-languages .section-title { color: var(--ink); font: 650 15px var(--sans); letter-spacing: -.015em; text-transform: none; }
+  #view-languages .section-title .count { color: var(--faint); font: 11px var(--mono); }
+  #view-languages .lang-card { min-height: 61px; gap: 8px; padding: 9px; }
+  .lang-card .locale-tile {
+    display: grid; place-items: center; width: 33px; height: 32px; flex: 0 0 auto;
+    border-radius: 5px; background: var(--bg); color: var(--faint); font: 10px var(--mono);
+  }
+  .lang-card.active .locale-tile { color: var(--accent-ink); }
+  .lang-card .lang-info { flex: 1; }
+  .lang-native:empty { display: none; }
+  @media (max-width: 1000px) {
+    .settings-shell { grid-template-columns: 120px minmax(0,1fr); gap: 12px; }
+    .settings-content .row { flex-wrap: wrap; }
+  }
+  @media (max-height: 630px) {
+    aside { padding-top: 15px; }
+    .brand { padding-bottom: 17px; }
+    .hint-card { margin-top: 13px; }
+    .view { padding-top: 25px; }
+  }
+  @media (max-width: 730px) {
+    .app { grid-template-columns: 164px minmax(0,1fr); }
+    .scroll { padding-inline: 15px; }
+    .history-overview .head { padding: 18px 16px; }
+    .history-overview .ledger { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .history-overview .ledger div:nth-child(2) { border-right: 0; }
+    .history-overview .ledger div:nth-child(n+3) { border-top: 1px solid var(--line); }
+    .settings-shell { grid-template-columns: minmax(0,1fr); gap: 7px; }
+    .settings-index { position: static; display: flex; flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+    .entry:hover { transform: none; }
+  }
+  html[data-backgrounded] *, html[data-backgrounded] *::before,
+  html[data-backgrounded] *::after { animation-play-state: paused !important; }
+  html[data-custom-palette] {
+    --accent: var(--picked-accent);
+    --accent-ink: var(--readable-accent);
+    --signal: var(--accent-ink);
+    --signal-line: rgba(var(--accent-rgb), .24);
+    --atmosphere: color-mix(in srgb, var(--picked-gradient) 22%, transparent);
+    --hero: color-mix(in srgb, var(--picked-gradient) 13%, var(--panel));
+    --hero-end: color-mix(in srgb, var(--picked-gradient) 5%, var(--bg));
+  }
+  .palette-field { display: inline-flex; align-items: center; gap: 9px; padding: 5px 9px 5px 5px; background: var(--card); border: 1px solid var(--line-2); border-radius: 10px; }
+  .palette-field:focus-within { border-color: var(--accent-ink); }
+  .palette-field input[type=color] { appearance: none; width: 32px; height: 29px; border: 0; background: transparent; cursor: pointer; }
+  .palette-field input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+  .palette-field input[type=color]::-webkit-color-swatch { border-radius: 6px; border: 1px solid var(--line-2); }
+  .palette-field input[type=text] { width: 8ch; font: 12px var(--mono); color: var(--ink); background: transparent; border: 0; }
+  ::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  ::view-transition-new(root) {
+    animation: reveal-theme 460ms cubic-bezier(.22,.68,.16,1) both;
+  }
+  @keyframes reveal-theme {
+    from { clip-path: circle(0px at var(--theme-x) var(--theme-y)); opacity: .65; }
+    to { clip-path: circle(var(--theme-radius) at var(--theme-x) var(--theme-y)); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-new(root) { animation: none; }
+  }
 </style>
 </head>
 <body>
+<svg class="symbol-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M4 7h6m4 0h6M4 17h10m4 0h2"/><circle cx="12" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></symbol>
+  <symbol id="icon-keyboard" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01m3.3 0h.01m3.3 0h.01m3.3 0h.01M7 14h.01M10 14h7"/></symbol>
+  <symbol id="icon-text" viewBox="0 0 24 24"><path d="M5 6h14M5 10h14M5 14h9M5 18h11"/></symbol>
+  <symbol id="icon-pill" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="5"/><path d="M8 12h.01m3.5 0H16"/></symbol>
+  <symbol id="icon-display" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="12" rx="2"/><path d="M12 16.5V20m-4 0h8"/></symbol>
+  <symbol id="icon-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 10.5v5m0-8h.01"/></symbol>
+</svg>
 <div class="app">
   <aside>
     <div class="brand">
       <img src="quotal_icon.png" onerror="this.onerror=null; this.src='../../assets/quotal_icon.png'" alt="">
-      <div><div class="name">Quotal</div><div class="sub">voice &middot; local</div></div>
+      <div><div class="name">Quotal</div><div class="sub">Voice dictation</div></div>
       <button class="theme-quick-btn" id="theme-quick-btn" title="Toggle theme (Light / Dark)" aria-label="Toggle theme">
         <svg id="theme-quick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       </button>
     </div>
-    <div class="nav-label">Menu</div>
-    <nav>
-      <div class="nav-item active" data-view="home" tabindex="0">
+    <nav aria-label="Dashboard">
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <button type="button" class="nav-item active" data-view="home" aria-controls="view-home" aria-current="page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
         <span>History</span><span class="count" id="nav-count"></span>
-      </div>
-      <div class="nav-item" data-view="models" tabindex="0">
+      </button>
+      <button type="button" class="nav-item" data-view="models" aria-controls="view-models">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
         <span>Models</span>
-      </div>
-      <div class="nav-item" data-view="languages" tabindex="0">
+      </button>
+      <button type="button" class="nav-item" data-view="languages" aria-controls="view-languages">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a15.3 15.3 0 0 1 4 9.5 15.3 15.3 0 0 1-4 9.5 15.3 15.3 0 0 1-4-9.5 15.3 15.3 0 0 1 4-9.5z"/><path d="M2.5 12h19"/></svg>
         <span>Languages</span><span class="count" id="nav-lang-count"></span>
-      </div>
-      <div class="nav-item" data-view="dictionary" tabindex="0">
+      </button>
+      <button type="button" class="nav-item" data-view="dictionary" aria-controls="view-dictionary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         <span>Dictionary</span><span class="count" id="nav-dict-count"></span>
-      </div>
-      <div class="nav-item" data-view="settings" tabindex="0">
+      </button>
+      <button type="button" class="nav-item" data-view="settings" aria-controls="view-settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg>
         <span>Settings</span>
-      </div>
+      </button>
     </nav>
 
     <div class="hint-card">
@@ -1296,19 +1545,21 @@
     <div class="scroll" id="scroll">
       <!-- HISTORY -->
       <section class="view active" id="view-home">
-        <div class="head">
-          <div class="eyebrow-row">
-            <div class="eyebrow" id="today-date">Today</div>
-            <div class="today-line" id="today-line"></div>
+        <div class="history-overview">
+          <div class="head">
+            <div class="eyebrow-row">
+              <div class="eyebrow" id="today-date">Today</div>
+              <div class="today-line" id="today-line"></div>
+            </div>
+            <h1 id="greeting">What you <em>said.</em></h1>
+            <div class="lead" id="history-lead">Search and reuse your recent dictations.</div>
           </div>
-          <h1 id="greeting">What you <em>said.</em></h1>
-          <div class="lead" id="history-lead">Everything you dictate lands here, ready to reuse.</div>
-        </div>
-        <div class="ledger">
-          <div><b id="s-count">0</b><span>dictations</span></div>
-          <div><b id="s-words">0</b><span>words</span></div>
-          <div><b id="s-saved">0<small>min</small></b><span>saved vs typing</span></div>
-          <div><b id="s-lat">&ndash;<small>ms</small></b><span>avg latency</span></div>
+          <div class="ledger">
+            <div><b id="s-count">0</b><span>dictations</span></div>
+            <div><b id="s-words">0</b><span>words</span></div>
+            <div><b id="s-saved">0<small>min</small></b><span>saved vs typing</span></div>
+            <div><b id="s-lat">&ndash;<small>ms</small></b><span>avg latency</span></div>
+          </div>
         </div>
         <div class="toolbar">
           <label class="search">
@@ -1388,10 +1639,10 @@
           </label>
         </div>
 
-        <div class="section-title" id="lang-quick-title">Quick picks</div>
+        <div class="section-title" id="lang-quick-title">Common languages</div>
         <div class="lang-grid" id="lang-quick-grid"></div>
 
-        <div class="section-title" id="lang-all-title">All languages <span class="count" id="lang-all-count"></span></div>
+        <div class="section-title" id="lang-all-title">Other languages <span class="count" id="lang-all-count"></span></div>
         <div class="lang-grid" id="lang-all-grid"></div>
 
         <p class="note">Tip: Selecting only the languages you actually speak (e.g. English + Hindi + Marathi) keeps recognition lightning-fast and avoids false detections.</p>
@@ -1428,408 +1679,450 @@
           <div class="lead">How Quotal cleans up and delivers your words.</div>
         </div>
 
-        <div class="section-title">Text cleanup</div>
-        <div class="enh-list" id="enhancer-modes">
-          <div class="enh active" data-mode="rules" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Instant tidy</div>
-              <div class="enh-desc">Cleans up filler, stutters, and common corrections without a model.</div>
-            </div>
+        <div class="settings-shell">
+          <div class="settings-index" role="navigation" aria-label="Settings sections">
+            <button type="button" data-settings-target="settings-cleanup" aria-current="true"><svg class="ui-icon" aria-hidden="true"><use href="#icon-text"/></svg>Text cleanup</button>
+            <button type="button" data-settings-target="settings-dictation"><svg class="ui-icon" aria-hidden="true"><use href="#icon-keyboard"/></svg>Dictation</button>
+            <button type="button" data-settings-target="settings-pill"><svg class="ui-icon" aria-hidden="true"><use href="#icon-pill"/></svg>Recording pill</button>
+            <button type="button" data-settings-target="settings-appearance"><svg class="ui-icon" aria-hidden="true"><use href="#icon-display"/></svg>Appearance</button>
+            <button type="button" data-settings-target="settings-system"><svg class="ui-icon" aria-hidden="true"><use href="#icon-settings"/></svg>System</button>
+            <button type="button" data-settings-target="settings-about"><svg class="ui-icon" aria-hidden="true"><use href="#icon-info"/></svg>About</button>
           </div>
-          <div class="enh" data-mode="hybrid" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Hybrid</div>
-              <div class="enh-desc">Uses Instant tidy for short, simple dictation and the local model for more complex edits.</div>
-            </div>
-          </div>
-          <div class="enh" data-mode="llm" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Neural polish</div>
-              <div class="enh-desc">Uses the local model to repair likely mishearings, revise false starts, and handle voice commands such as summarizing or translating. Falls back to Instant tidy when needed.</div>
-              <div class="llm-box" id="llm-status-box">
-                <span id="llm-status-txt">Checking model status…</span>
-                <button class="btn-sm" id="llm-dl-btn" style="display:none">Download</button>
+          <div class="settings-content">
+            <section id="settings-cleanup" aria-label="Text cleanup">
+              <h2 class="section-title">Text cleanup</h2>
+              <div class="enh-list" id="enhancer-modes">
+                <div class="enh active" data-mode="rules" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Instant tidy</div>
+                    <div class="enh-desc">Cleans up filler, stutters, and common corrections without a model.</div>
+                  </div>
+                </div>
+                <div class="enh" data-mode="hybrid" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Hybrid</div>
+                    <div class="enh-desc">Uses Instant tidy for short, simple dictation and the local model for more complex edits.</div>
+                  </div>
+                </div>
+                <div class="enh" data-mode="llm" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Neural polish</div>
+                    <div class="enh-desc">Uses the local model to repair likely mishearings, revise false starts, and handle voice commands such as summarizing or translating. Falls back to Instant tidy when needed.</div>
+                    <div class="llm-box" id="llm-status-box">
+                      <span id="llm-status-txt">Checking model status…</span>
+                      <button class="btn-sm" id="llm-dl-btn" style="display:none">Download</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="enh" data-mode="off" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Verbatim <span class="tag">no edits</span></div>
+                    <div class="enh-desc">Paste exactly what the speech engine heard. Useful when every filler word matters.</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="enh" data-mode="off" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Verbatim <span class="tag">no edits</span></div>
-              <div class="enh-desc">Paste exactly what the speech engine heard. Useful when every filler word matters.</div>
-            </div>
-          </div>
-        </div>
-        <div class="rows">
-          <div class="row">
-            <div class="info">
-              <label class="t" for="enhancer-style">Writing style</label>
-              <div class="d">Default adapts to the active application. Summary uses the local model.</div>
-            </div>
-            <select class="dict-input" id="enhancer-style">
-              <option value="default">Default</option>
-              <option value="concise">Concise</option>
-              <option value="formal">Formal</option>
-              <option value="casual">Casual</option>
-              <option value="bullets">Bullets</option>
-              <option value="summary">Summary</option>
-            </select>
-          </div>
-        </div>
+              <div class="rows">
+                <div class="row">
+                  <div class="info">
+                    <label class="t" for="enhancer-style">Writing style</label>
+                    <div class="d">Default adapts to the active application. Summary uses the local model.</div>
+                  </div>
+                  <select class="dict-input" id="enhancer-style">
+                    <option value="default">Default</option>
+                    <option value="concise">Concise</option>
+                    <option value="formal">Formal</option>
+                    <option value="casual">Casual</option>
+                    <option value="bullets">Bullets</option>
+                    <option value="summary">Summary</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+            <section id="settings-dictation" aria-label="Dictation" hidden>
+              <h2 class="section-title">Dictation</h2>
+              <div class="rows">
+                <div class="row">
+                  <div class="info">
+                    <div class="t">Text delivery</div>
+                    <div class="d">Paste text directly at your cursor into the active application, or copy to clipboard only.</div>
+                  </div>
+                  <div class="theme-toggle-group" id="paste-mode-seg">
+                    <button class="theme-opt" data-paste-mode="direct">Direct paste</button>
+                    <button class="theme-opt" data-paste-mode="clipboard">Clipboard only</button>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="info"><div class="t">Sound effects</div><div class="d">A soft chime when recording starts, another when text lands.</div></div>
+                  <div class="switch" data-key="audio_chimes" tabindex="0" role="switch"></div>
+                </div>
+                <div class="row">
+                  <div class="info"><div class="t">Compute device</div><div class="d" id="device-status">Auto uses the GPU when one exists, CPU otherwise.</div><div id="device-dl"></div></div>
+                  <div class="theme-toggle-group" id="device-seg">
+                    <button class="theme-opt" data-device="auto">Auto</button>
+                    <button class="theme-opt" data-device="cuda">GPU</button>
+                    <button class="theme-opt" data-device="cpu">CPU</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section id="settings-pill" aria-label="Recording pill" hidden>
+              <h2 class="section-title">Recording pill</h2>
+              <div class="pill-list" id="pill-styles">
+                <!--
+                <div class="pillopt" data-pill="orb" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Aura <span class="tag">default</span></div>
+                    <div class="enh-desc">The fluid orb you already know. A living gradient that ripples with your voice.</div>
+                    <div class="pv" data-pv="orb"><span class="pv-o"></span><span class="pv-t">Listening</span><span class="pv-w"><i></i><i></i><i></i><i></i><i></i></span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="ember" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Ember <span class="tag">warm</span></div>
+                    <div class="enh-desc">A single warm ember with a satellite in orbit. Quiet, calm, barely there.</div>
+                    <div class="pv" data-pv="ember"><span class="pv-e"></span><span class="pv-t">Listening</span><span class="pv-w"><i></i><i></i><i></i><i></i><i></i></span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="meter" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Meter <span class="tag">lively</span></div>
+                    <div class="enh-desc">Five chunky bars that dance with your volume. For people who like to see the sound.</div>
+                    <div class="pv" data-pv="meter"><span class="pv-m"><i></i><i></i><i></i><i></i><i></i></span><span class="pv-t">Listening</span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="halo" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Orbit <span class="tag">minimal</span></div>
+                    <div class="enh-desc">A thin spinning halo around a glowing core. The most understated of the bunch.</div>
+                    <div class="pv" data-pv="halo"><span class="pv-h"><span class="pv-h-ring"></span><span class="pv-h-dot"></span></span><span class="pv-t">Listening</span></div>
+                  </div>
+                </div>
+                -->
+                <div class="pillopt" data-pill="bloom" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Bloom <span class="tag">orb only</span></div>
+                    <div class="enh-desc">A living voice-reactive orb floating on its own. No text, no bars — just the orb.</div>
+                    <div class="pv" data-pv="bloom"><span class="pv-b"></span><span class="pv-t">Listening</span></div>
+                  </div>
+                </div>
+                <!--
+                <div class="pillopt" data-pill="nova" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Nova <span class="tag">python · no webview</span></div>
+                    <div class="enh-desc">Bloom recreated in pure Python — same living-orb idea, zero WebView. Lighter and dependency-free.</div>
+                    <div class="pv" data-pv="bloom"><span class="pv-b"></span><span class="pv-t">Listening</span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="pulse" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Pulse <span class="tag">python · minimal</span></div>
+                    <div class="enh-desc">A tiny flat-black pill with white voice bars. Dots when idle, bars when you speak. Pure Python, no WebView.</div>
+                    <div class="pv" data-pv="pulse"><span class="pv-w"><i></i><i></i><i></i><i></i><i></i></span></div>
+                  </div>
+                </div>
+                -->
+                <div class="pillopt" data-pill="wispr" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Wispr <span class="tag">pyside6 · minimal</span></div>
+                    <div class="enh-desc">Small black capsule, dim dots at rest that bloom into voice bars while recording, spinner while enhancing. Runs its own mic via PySide6.</div>
+                    <div class="pv" data-pv="wispr"><span class="pv-w"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="quotal" data-themes="quotal,quotal-light" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Quotal <span class="tag">pyside6 · brand</span></div>
+                    <div class="enh-desc">Quotal brand pill — quote marks from the icon on glass. Marks fade as a voice hill swells; a light orbits the edge while enhancing. Pick dark or light glass below. Runs its own mic via PySide6.</div>
+                    <div class="pv-row">
+                      <div class="pv" data-pv="quotal"><span class="pv-q">❝</span><span class="pv-hill"></span></div>
+                      <div class="pv" data-pv="quotal-light"><span class="pv-q">❝</span><span class="pv-hill"></span></div>
+                    </div>
+                    <div class="theme-seg" id="quotal-theme-seg">
+                      <button data-qtheme="quotal" title="Dark glass">Dark</button>
+                      <button data-qtheme="quotal-light" title="Light glass · orange accent">Light</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="aurora" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Aurora <span class="tag">pyside6 · glow</span></div>
+                    <div class="enh-desc">Aurora glow pill — smoked glass with drifting rainbow light. Swells and swirls with your voice, ribbon waves while recording, rainbow ring while enhancing. Runs its own mic via PySide6.</div>
+                    <div class="pv" data-pv="aurora"><span class="pv-a"></span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="nothing" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Nothing <span class="tag">pyside6 · led</span></div>
+                    <div class="enh-desc">Dot-matrix pill — matte-black capsule with a recessed LED lattice. Voice columns with peak-hold dots while recording, rim comet while enhancing. Runs its own mic via PySide6.</div>
+                    <div class="pv" data-pv="nothing"><span class="pv-led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+                    <div class="led-picker" id="led-picker">
+                      <button class="sw" data-accent="white" style="--sw:#E2E6F0" title="White"></button>
+                      <button class="sw" data-accent="amber" style="--sw:#FF8E26" title="Amber"></button>
+                      <button class="sw" data-accent="red" style="--sw:#FF3636" title="Red"></button>
+                      <button class="sw" data-accent="mint" style="--sw:#36FFA8" title="Mint"></button>
+                      <button class="sw" data-accent="ice" style="--sw:#58C4FF" title="Ice"></button>
+                      <label class="sw sw-custom" title="Custom color"><input type="color" id="led-custom" value="#ffffff"><span>+</span></label>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="mercury" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Mercury <span class="tag">pyside6 · chrome</span></div>
+                    <div class="enh-desc">Liquid-chrome pill — seven mercury droplets that stretch, bridge and fuse as your voice rises, with a studio reflection and accent glow. Molten loop while enhancing. Runs its own mic via PySide6.</div>
+                    <div class="pv" data-pv="mercury"><span class="pv-drop"><i></i><i></i><i></i></span></div>
+                    <div class="led-picker" id="mercury-picker">
+                      <button class="sw" data-accent="orange" style="--sw:#FF882C" title="Orange"></button>
+                      <button class="sw" data-accent="ice" style="--sw:#60BEFF" title="Ice"></button>
+                      <button class="sw" data-accent="violet" style="--sw:#A470FF" title="Violet"></button>
+                      <button class="sw" data-accent="mint" style="--sw:#46EBAA" title="Mint"></button>
+                      <button class="sw" data-accent="mono" style="--sw:#CDD2DE" title="Mono"></button>
+                      <label class="sw sw-custom" title="Custom color"><input type="color" id="mercury-custom" value="#ff882c"><span>+</span></label>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="orbit" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Orbit <span class="tag">pyside6 · system</span></div>
+                    <div class="enh-desc">Orbital-system pill — glowing core with eight satellites on tilted orbits and comet tails. Orbits breathe with your voice; everything locks onto one fast ring while enhancing. Runs its own mic via PySide6.</div>
+                    <div class="pv" data-pv="orbit"><span class="pv-core"></span><span class="pv-ring"></span></div>
+                    <div class="led-picker" id="orbit-picker">
+                      <button class="sw" data-accent="ion" style="--sw:#46BEFF" title="Ion"></button>
+                      <button class="sw" data-accent="solar" style="--sw:#FF8A2C" title="Solar"></button>
+                      <button class="sw" data-accent="plasma" style="--sw:#A86EFF" title="Plasma"></button>
+                      <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
+                      <button class="sw" data-accent="mono" style="--sw:#C8CEDC" title="Mono"></button>
+                    </div>
+                  </div>
+                </div>
+                          <div class="pillopt" data-pill="opus" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Opus <span class="tag">pyside6 · live transcript</span></div>
+                    <div class="enh-desc">Dynamic island dark-glass caption card with hanging quote marks and audio rail — live streaming transcript while listening!</div>
+                    <div class="pv" data-pv="opus"><span class="pv-o-glyph">“</span><span class="pv-o-txt">Live transcript...</span></div>
+                    <div class="led-picker" id="opus-picker">
+                      <button class="sw" data-accent="orange" style="--sw:#FF8428" title="Orange"></button>
+                      <button class="sw" data-accent="ice" style="--sw:#46BEFF" title="Ice"></button>
+                      <button class="sw" data-accent="violet" style="--sw:#A86EFF" title="Violet"></button>
+                      <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
+                      <button class="sw" data-accent="rose" style="--sw:#FF548C" title="Rose"></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="neon" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Neon <span class="tag">pyside6 · live transcript</span></div>
+                    <div class="enh-desc">Dark glass card with glowing neon tube border, igniting word sprites, and loudness voice line.</div>
+                    <div class="pv" data-pv="neon"><span class="pv-n-glyph">“</span><span class="pv-n-txt">LIVE NEON GLOW...</span></div>
+                    <div class="led-picker" id="neon-picker">
+                      <button class="sw" data-theme="sunset" style="--sw:#FF9240" title="Sunset"></button>
+                      <button class="sw" data-theme="cyber" style="--sw:#40DEFF" title="Cyber"></button>
+                      <button class="sw" data-theme="toxic" style="--sw:#A6FF54" title="Toxic"></button>
+                      <button class="sw" data-theme="rose" style="--sw:#FF68A0" title="Rose"></button>
+                      <button class="sw" data-theme="ice" style="--sw:#96C8FF" title="Ice"></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="flipboard" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Flipboard <span class="tag">pyside6 · live transcript</span></div>
+                    <div class="enh-desc">Mechanical airport departures split-flap board in a brushed metal capsule with VU meter lamps.</div>
+                    <div class="pv" data-pv="flipboard"><span class="pv-fb-lamp"></span><span class="pv-fb-txt">QUOTAL DEPARTURES</span></div>
+                    <div class="led-picker" id="flipboard-picker">
+                      <button class="sw" data-style="classic" style="--sw:#F8F4EA" title="Classic"></button>
+                      <button class="sw" data-style="amber" style="--sw:#FFBE46" title="Amber"></button>
+                      <button class="sw" data-style="mint" style="--sw:#A0FFD0" title="Mint"></button>
+                      <button class="sw" data-style="ice" style="--sw:#CEE6FF" title="Ice"></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="receipt" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Receipt <span class="tag">pyside6 · live transcript</span></div>
+                    <div class="enh-desc">Thermal printer in a capsule. Live transcript prints out of the slit on fluttering receipt paper and tears off when done!</div>
+                    <div class="pv" data-pv="receipt"><span class="pv-rc-led"></span><span class="pv-rc-txt">QUOTAL</span><span class="pv-rc-slit"></span></div>
+                    <div class="led-picker" id="receipt-picker">
+                      <button class="sw" data-body="cream" style="--sw:#F6F4EE" title="Cream"></button>
+                      <button class="sw" data-body="graphite" style="--sw:#24252A" title="Graphite"></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="face" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Face <span class="tag">pyside6 · animated companion</span></div>
+                    <div class="enh-desc">Living Quotal character tile. Quote marks for eyes that look at your text, an animated mound mouth that breathes with your voice, and a speech bubble typewriter.</div>
+                    <div class="pv" data-pv="face"><span class="pv-fc-eyes">“”</span><span class="pv-fc-mouth"></span><span class="pv-fc-bubble">Talking...</span></div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="cassette" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Cassette <span class="tag">pyside6 · tape deck</span></div>
+                    <div class="enh-desc">Vintage tape deck in a capsule. Words record straight onto magnetic tape while reels turn and record head glows, rewinding fast on finish!</div>
+                    <div class="pv" data-pv="cassette">
+                      <span class="pv-cas-win"><span class="pv-cas-reel"></span><span class="pv-cas-reel"></span></span>
+                      <span class="pv-cas-txt">SIDE A</span>
+                    </div>
+                    <div class="led-picker" id="cassette-picker">
+                      <button class="sw" data-body="orange" style="--sw:#FF9C4C" title="Orange"></button>
+                      <button class="sw" data-body="black" style="--sw:#26272C" title="Black"></button>
+                      <button class="sw" data-body="cream" style="--sw:#F8F6F0" title="Cream"></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="crt" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">CRT <span class="tag">pyside6 · 1970s television</span></div>
+                    <div class="enh-desc">Vintage phosphor screen in a retro wood TV. Words glow onto phosphor glass with RGB split, blinking cursor, live oscilloscope trace, VU meter grille, and rabbit ears!</div>
+                    <div class="pv" data-pv="crt">
+                      <span class="pv-crt-scr"><span class="pv-crt-txt">&gt; REC</span></span>
+                      <span class="pv-crt-knobs"><span class="pv-crt-knob"></span><span class="pv-crt-knob"></span></span>
+                    </div>
+                    <div class="led-picker" id="crt-case-picker" style="margin-top:6px">
+                      <span style="font-size:10px;color:var(--muted);margin-right:4px">Case:</span>
+                      <button class="sw" data-case="walnut" style="--sw:#80522E" title="Walnut"></button>
+                      <button class="sw" data-case="mint" style="--sw:#78BEAA" title="Mint"></button>
+                      <button class="sw" data-case="graphite" style="--sw:#3A3C42" title="Graphite"></button>
+                    </div>
+                    <div class="led-picker" id="crt-phosphor-picker" style="margin-top:4px">
+                      <span style="font-size:10px;color:var(--muted);margin-right:4px">Phosphor:</span>
+                      <button class="sw" data-phosphor="amber" style="--sw:#FFB240" title="Amber"></button>
+                      <button class="sw" data-phosphor="green" style="--sw:#76FF96" title="Green"></button>
+                      <button class="sw" data-phosphor="white" style="--sw:#CEE2FF" title="White"></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pillopt" data-pill="scribe" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Scribe <span class="tag">pyside6 · live captions</span></div>
+                    <div class="enh-desc">Dynamic island caption capsule — live streaming words ease in as you speak with breathing orb and blinking caret. Shimmer sweeps during AI polish. Best with Nemotron Streaming!</div>
+                    <div class="pv" data-pv="scribe"><span class="pv-s-orb"></span><span class="pv-s-txt">Live transcript...</span></div>
+                    <div class="led-picker" id="scribe-picker">
+                      <button class="sw" data-accent="orange" style="--sw:#FF8428" title="Orange"></button>
+                      <button class="sw" data-accent="ice" style="--sw:#46BEFF" title="Ice"></button>
+                      <button class="sw" data-accent="violet" style="--sw:#A86EFF" title="Violet"></button>
+                      <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
+                      <button class="sw" data-accent="rose" style="--sw:#FF548C" title="Rose"></button>
+                    </div>
+                  </div>
+                </div>
+                <!--
+                <div class="pillopt" data-pill="bloomcs" tabindex="0">
+                  <div class="radio"></div>
+                  <div>
+                    <div class="enh-title">Bloom CS <span class="tag">native gpu</span></div>
+                    <div class="enh-desc">The actual Orbloom shader on your GPU in a native window. Pixel-exact, no WebView, no approximation.</div>
+                    <div class="pv" data-pv="bloom"><span class="pv-b"></span><span class="pv-t">Listening</span></div>
+                  </div>
+                </div>
+                -->
+              </div>
+            </section>
+            <section id="settings-appearance" aria-label="Appearance" hidden>
+              <h2 class="section-title">Appearance</h2>
+              <div class="rows">
+                <div class="row">
+                  <div class="info">
+                    <div class="t">Color theme</div>
+                    <div class="d">Choose between dark obsidian and paper-light mode.</div>
+                  </div>
+                  <div class="theme-toggle-group" id="theme-toggle-group">
+                    <button class="theme-opt active" data-theme="dark" type="button" tabindex="0">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                      <span>Dark</span>
+                    </button>
+                    <button class="theme-opt" data-theme="light" type="button" tabindex="0">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                      <span>Light</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="info"><div class="t">Color palette</div></div>
+                  <div class="theme-toggle-group" role="group" aria-label="Color palette">
+                    <button type="button" class="theme-opt active" data-palette="default" aria-pressed="true">Default</button>
+                    <button type="button" class="theme-opt" data-palette="custom" aria-pressed="false">Custom</button>
+                  </div>
+                </div>
+                <div id="palette-editors" hidden>
+                  <div class="row" data-color-role="accent">
+                    <div class="info"><label class="t" for="pick-accent">Accent color</label><div class="d">Headings, highlights, and selected controls.</div></div>
+                    <div class="palette-field">
+                      <input type="color" id="pick-accent" aria-label="Choose accent color">
+                      <input type="text" aria-label="Accent color hex" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#RRGGBB">
+                    </div>
+                  </div>
+                  <div class="row" data-color-role="gradient">
+                    <div class="info"><label class="t" for="pick-gradient">Gradient color</label><div class="d">The background tint across the dashboard.</div></div>
+                    <div class="palette-field">
+                      <input type="color" id="pick-gradient" aria-label="Choose gradient color">
+                      <input type="text" aria-label="Gradient color hex" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#RRGGBB">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section id="settings-system" aria-label="System" hidden>
+              <h2 class="section-title">System</h2>
+              <div class="rows">
+                <div class="row">
+                  <div class="info"><div class="t">Launch at startup</div><div class="d">Keep Quotal in the tray so it is ready before you are.</div></div>
+                  <div class="switch" id="autostart" tabindex="0" role="switch"></div>
+                </div>
+                <div class="row">
+                  <div class="info"><div class="t">Floating pill position</div><div class="d">Snap the recording pill back to bottom-centre.</div></div>
+                  <button class="btn" id="pill-reset">Reset</button>
+                </div>
+              </div>
+            </section>
+            <section id="settings-about" aria-label="About" hidden>
+              <h2 class="section-title">About</h2>
+              <div class="about">
+                <img src="quotal_icon.png" onerror="this.onerror=null; this.src='../../assets/quotal_icon.png'" alt="">
+                <div><div class="t">Quotal</div><div class="d">Private, on-device dictation for Windows.</div></div>
+                <span class="mono-note">audio never leaves this pc</span>
+              </div>
 
-        <div class="section-title">Dictation</div>
-        <div class="rows">
-          <div class="row">
-            <div class="info">
-              <div class="t">Text delivery</div>
-              <div class="d">Paste text directly at your cursor into the active application, or copy to clipboard only.</div>
-            </div>
-            <div class="theme-toggle-group" id="paste-mode-seg">
-              <button class="theme-opt" data-paste-mode="direct">Direct paste</button>
-              <button class="theme-opt" data-paste-mode="clipboard">Clipboard only</button>
-            </div>
-          </div>
-          <div class="row">
-            <div class="info"><div class="t">Sound effects</div><div class="d">A soft chime when recording starts, another when text lands.</div></div>
-            <div class="switch" data-key="audio_chimes" tabindex="0" role="switch"></div>
-          </div>
-          <div class="row">
-            <div class="info"><div class="t">Compute device</div><div class="d" id="device-status">Auto uses the GPU when one exists, CPU otherwise.</div><div id="device-dl"></div></div>
-            <div class="theme-toggle-group" id="device-seg">
-              <button class="theme-opt" data-device="auto">Auto</button>
-              <button class="theme-opt" data-device="cuda">GPU</button>
-              <button class="theme-opt" data-device="cpu">CPU</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-title">Recording pill</div>
-        <div class="pill-list" id="pill-styles">
-          <!--
-          <div class="pillopt" data-pill="orb" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Aura <span class="tag">default</span></div>
-              <div class="enh-desc">The fluid orb you already know. A living gradient that ripples with your voice.</div>
-              <div class="pv" data-pv="orb"><span class="pv-o"></span><span class="pv-t">Listening</span><span class="pv-w"><i></i><i></i><i></i><i></i><i></i></span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="ember" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Ember <span class="tag">warm</span></div>
-              <div class="enh-desc">A single warm ember with a satellite in orbit. Quiet, calm, barely there.</div>
-              <div class="pv" data-pv="ember"><span class="pv-e"></span><span class="pv-t">Listening</span><span class="pv-w"><i></i><i></i><i></i><i></i><i></i></span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="meter" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Meter <span class="tag">lively</span></div>
-              <div class="enh-desc">Five chunky bars that dance with your volume. For people who like to see the sound.</div>
-              <div class="pv" data-pv="meter"><span class="pv-m"><i></i><i></i><i></i><i></i><i></i></span><span class="pv-t">Listening</span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="halo" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Orbit <span class="tag">minimal</span></div>
-              <div class="enh-desc">A thin spinning halo around a glowing core. The most understated of the bunch.</div>
-              <div class="pv" data-pv="halo"><span class="pv-h"><span class="pv-h-ring"></span><span class="pv-h-dot"></span></span><span class="pv-t">Listening</span></div>
-            </div>
-          </div>
-          -->
-          <div class="pillopt" data-pill="bloom" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Bloom <span class="tag">orb only</span></div>
-              <div class="enh-desc">A living voice-reactive orb floating on its own. No text, no bars — just the orb.</div>
-              <div class="pv" data-pv="bloom"><span class="pv-b"></span><span class="pv-t">Listening</span></div>
-            </div>
-          </div>
-          <!--
-          <div class="pillopt" data-pill="nova" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Nova <span class="tag">python · no webview</span></div>
-              <div class="enh-desc">Bloom recreated in pure Python — same living-orb idea, zero WebView. Lighter and dependency-free.</div>
-              <div class="pv" data-pv="bloom"><span class="pv-b"></span><span class="pv-t">Listening</span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="pulse" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Pulse <span class="tag">python · minimal</span></div>
-              <div class="enh-desc">A tiny flat-black pill with white voice bars. Dots when idle, bars when you speak. Pure Python, no WebView.</div>
-              <div class="pv" data-pv="pulse"><span class="pv-w"><i></i><i></i><i></i><i></i><i></i></span></div>
-            </div>
-          </div>
-          -->
-          <div class="pillopt" data-pill="wispr" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Wispr <span class="tag">pyside6 · minimal</span></div>
-              <div class="enh-desc">Small black capsule, dim dots at rest that bloom into voice bars while recording, spinner while enhancing. Runs its own mic via PySide6.</div>
-              <div class="pv" data-pv="wispr"><span class="pv-w"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="quotal" data-themes="quotal,quotal-light" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Quotal <span class="tag">pyside6 · brand</span></div>
-              <div class="enh-desc">Quotal brand pill — quote marks from the icon on glass. Marks fade as a voice hill swells; a light orbits the edge while enhancing. Pick dark or light glass below. Runs its own mic via PySide6.</div>
-              <div class="pv-row">
-                <div class="pv" data-pv="quotal"><span class="pv-q">❝</span><span class="pv-hill"></span></div>
-                <div class="pv" data-pv="quotal-light"><span class="pv-q">❝</span><span class="pv-hill"></span></div>
+              <div class="section-title">How it works</div>
+              <div class="steps">
+                <div class="step"><b>i.</b><span class="st">Click into any text field</span>Browser, Slack, VS Code, Word — anywhere with a cursor.</div>
+                <div class="step"><b>ii.</b><span class="st">Hold and speak</span>Hold <kbd>Right Alt</kbd> or <kbd>F8</kbd> and talk like you normally would.</div>
+                <div class="step"><b>iii.</b><span class="st">Let go to paste</span>Cleaned-up text appears where you left the cursor.</div>
               </div>
-              <div class="theme-seg" id="quotal-theme-seg">
-                <button data-qtheme="quotal" title="Dark glass">Dark</button>
-                <button data-qtheme="quotal-light" title="Light glass · orange accent">Light</button>
-              </div>
-            </div>
+            </section>
           </div>
-          <div class="pillopt" data-pill="aurora" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Aurora <span class="tag">pyside6 · glow</span></div>
-              <div class="enh-desc">Aurora glow pill — smoked glass with drifting rainbow light. Swells and swirls with your voice, ribbon waves while recording, rainbow ring while enhancing. Runs its own mic via PySide6.</div>
-              <div class="pv" data-pv="aurora"><span class="pv-a"></span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="nothing" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Nothing <span class="tag">pyside6 · led</span></div>
-              <div class="enh-desc">Dot-matrix pill — matte-black capsule with a recessed LED lattice. Voice columns with peak-hold dots while recording, rim comet while enhancing. Runs its own mic via PySide6.</div>
-              <div class="pv" data-pv="nothing"><span class="pv-led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
-              <div class="led-picker" id="led-picker">
-                <button class="sw" data-accent="white" style="--sw:#E2E6F0" title="White"></button>
-                <button class="sw" data-accent="amber" style="--sw:#FF8E26" title="Amber"></button>
-                <button class="sw" data-accent="red" style="--sw:#FF3636" title="Red"></button>
-                <button class="sw" data-accent="mint" style="--sw:#36FFA8" title="Mint"></button>
-                <button class="sw" data-accent="ice" style="--sw:#58C4FF" title="Ice"></button>
-                <label class="sw sw-custom" title="Custom color"><input type="color" id="led-custom" value="#ffffff"><span>+</span></label>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="mercury" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Mercury <span class="tag">pyside6 · chrome</span></div>
-              <div class="enh-desc">Liquid-chrome pill — seven mercury droplets that stretch, bridge and fuse as your voice rises, with a studio reflection and accent glow. Molten loop while enhancing. Runs its own mic via PySide6.</div>
-              <div class="pv" data-pv="mercury"><span class="pv-drop"><i></i><i></i><i></i></span></div>
-              <div class="led-picker" id="mercury-picker">
-                <button class="sw" data-accent="orange" style="--sw:#FF882C" title="Orange"></button>
-                <button class="sw" data-accent="ice" style="--sw:#60BEFF" title="Ice"></button>
-                <button class="sw" data-accent="violet" style="--sw:#A470FF" title="Violet"></button>
-                <button class="sw" data-accent="mint" style="--sw:#46EBAA" title="Mint"></button>
-                <button class="sw" data-accent="mono" style="--sw:#CDD2DE" title="Mono"></button>
-                <label class="sw sw-custom" title="Custom color"><input type="color" id="mercury-custom" value="#ff882c"><span>+</span></label>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="orbit" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Orbit <span class="tag">pyside6 · system</span></div>
-              <div class="enh-desc">Orbital-system pill — glowing core with eight satellites on tilted orbits and comet tails. Orbits breathe with your voice; everything locks onto one fast ring while enhancing. Runs its own mic via PySide6.</div>
-              <div class="pv" data-pv="orbit"><span class="pv-core"></span><span class="pv-ring"></span></div>
-              <div class="led-picker" id="orbit-picker">
-                <button class="sw" data-accent="ion" style="--sw:#46BEFF" title="Ion"></button>
-                <button class="sw" data-accent="solar" style="--sw:#FF8A2C" title="Solar"></button>
-                <button class="sw" data-accent="plasma" style="--sw:#A86EFF" title="Plasma"></button>
-                <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
-                <button class="sw" data-accent="mono" style="--sw:#C8CEDC" title="Mono"></button>
-              </div>
-            </div>
-          </div>
-                    <div class="pillopt" data-pill="opus" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Opus <span class="tag">pyside6 · live transcript</span></div>
-              <div class="enh-desc">Dynamic island dark-glass caption card with hanging quote marks and audio rail — live streaming transcript while listening!</div>
-              <div class="pv" data-pv="opus"><span class="pv-o-glyph">“</span><span class="pv-o-txt">Live transcript...</span></div>
-              <div class="led-picker" id="opus-picker">
-                <button class="sw" data-accent="orange" style="--sw:#FF8428" title="Orange"></button>
-                <button class="sw" data-accent="ice" style="--sw:#46BEFF" title="Ice"></button>
-                <button class="sw" data-accent="violet" style="--sw:#A86EFF" title="Violet"></button>
-                <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
-                <button class="sw" data-accent="rose" style="--sw:#FF548C" title="Rose"></button>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="neon" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Neon <span class="tag">pyside6 · live transcript</span></div>
-              <div class="enh-desc">Dark glass card with glowing neon tube border, igniting word sprites, and loudness voice line.</div>
-              <div class="pv" data-pv="neon"><span class="pv-n-glyph">“</span><span class="pv-n-txt">LIVE NEON GLOW...</span></div>
-              <div class="led-picker" id="neon-picker">
-                <button class="sw" data-theme="sunset" style="--sw:#FF9240" title="Sunset"></button>
-                <button class="sw" data-theme="cyber" style="--sw:#40DEFF" title="Cyber"></button>
-                <button class="sw" data-theme="toxic" style="--sw:#A6FF54" title="Toxic"></button>
-                <button class="sw" data-theme="rose" style="--sw:#FF68A0" title="Rose"></button>
-                <button class="sw" data-theme="ice" style="--sw:#96C8FF" title="Ice"></button>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="flipboard" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Flipboard <span class="tag">pyside6 · live transcript</span></div>
-              <div class="enh-desc">Mechanical airport departures split-flap board in a brushed metal capsule with VU meter lamps.</div>
-              <div class="pv" data-pv="flipboard"><span class="pv-fb-lamp"></span><span class="pv-fb-txt">QUOTAL DEPARTURES</span></div>
-              <div class="led-picker" id="flipboard-picker">
-                <button class="sw" data-style="classic" style="--sw:#F8F4EA" title="Classic"></button>
-                <button class="sw" data-style="amber" style="--sw:#FFBE46" title="Amber"></button>
-                <button class="sw" data-style="mint" style="--sw:#A0FFD0" title="Mint"></button>
-                <button class="sw" data-style="ice" style="--sw:#CEE6FF" title="Ice"></button>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="receipt" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Receipt <span class="tag">pyside6 · live transcript</span></div>
-              <div class="enh-desc">Thermal printer in a capsule. Live transcript prints out of the slit on fluttering receipt paper and tears off when done!</div>
-              <div class="pv" data-pv="receipt"><span class="pv-rc-led"></span><span class="pv-rc-txt">QUOTAL</span><span class="pv-rc-slit"></span></div>
-              <div class="led-picker" id="receipt-picker">
-                <button class="sw" data-body="cream" style="--sw:#F6F4EE" title="Cream"></button>
-                <button class="sw" data-body="graphite" style="--sw:#24252A" title="Graphite"></button>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="face" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Face <span class="tag">pyside6 · animated companion</span></div>
-              <div class="enh-desc">Living Quotal character tile. Quote marks for eyes that look at your text, an animated mound mouth that breathes with your voice, and a speech bubble typewriter.</div>
-              <div class="pv" data-pv="face"><span class="pv-fc-eyes">“”</span><span class="pv-fc-mouth"></span><span class="pv-fc-bubble">Talking...</span></div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="cassette" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Cassette <span class="tag">pyside6 · tape deck</span></div>
-              <div class="enh-desc">Vintage tape deck in a capsule. Words record straight onto magnetic tape while reels turn and record head glows, rewinding fast on finish!</div>
-              <div class="pv" data-pv="cassette">
-                <span class="pv-cas-win"><span class="pv-cas-reel"></span><span class="pv-cas-reel"></span></span>
-                <span class="pv-cas-txt">SIDE A</span>
-              </div>
-              <div class="led-picker" id="cassette-picker">
-                <button class="sw" data-body="orange" style="--sw:#FF9C4C" title="Orange"></button>
-                <button class="sw" data-body="black" style="--sw:#26272C" title="Black"></button>
-                <button class="sw" data-body="cream" style="--sw:#F8F6F0" title="Cream"></button>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="crt" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">CRT <span class="tag">pyside6 · 1970s television</span></div>
-              <div class="enh-desc">Vintage phosphor screen in a retro wood TV. Words glow onto phosphor glass with RGB split, blinking cursor, live oscilloscope trace, VU meter grille, and rabbit ears!</div>
-              <div class="pv" data-pv="crt">
-                <span class="pv-crt-scr"><span class="pv-crt-txt">&gt; REC</span></span>
-                <span class="pv-crt-knobs"><span class="pv-crt-knob"></span><span class="pv-crt-knob"></span></span>
-              </div>
-              <div class="led-picker" id="crt-case-picker" style="margin-top:6px">
-                <span style="font-size:10px;color:var(--muted);margin-right:4px">Case:</span>
-                <button class="sw" data-case="walnut" style="--sw:#80522E" title="Walnut"></button>
-                <button class="sw" data-case="mint" style="--sw:#78BEAA" title="Mint"></button>
-                <button class="sw" data-case="graphite" style="--sw:#3A3C42" title="Graphite"></button>
-              </div>
-              <div class="led-picker" id="crt-phosphor-picker" style="margin-top:4px">
-                <span style="font-size:10px;color:var(--muted);margin-right:4px">Phosphor:</span>
-                <button class="sw" data-phosphor="amber" style="--sw:#FFB240" title="Amber"></button>
-                <button class="sw" data-phosphor="green" style="--sw:#76FF96" title="Green"></button>
-                <button class="sw" data-phosphor="white" style="--sw:#CEE2FF" title="White"></button>
-              </div>
-            </div>
-          </div>
-          <div class="pillopt" data-pill="scribe" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Scribe <span class="tag">pyside6 · live captions</span></div>
-              <div class="enh-desc">Dynamic island caption capsule — live streaming words ease in as you speak with breathing orb and blinking caret. Shimmer sweeps during AI polish. Best with Nemotron Streaming!</div>
-              <div class="pv" data-pv="scribe"><span class="pv-s-orb"></span><span class="pv-s-txt">Live transcript...</span></div>
-              <div class="led-picker" id="scribe-picker">
-                <button class="sw" data-accent="orange" style="--sw:#FF8428" title="Orange"></button>
-                <button class="sw" data-accent="ice" style="--sw:#46BEFF" title="Ice"></button>
-                <button class="sw" data-accent="violet" style="--sw:#A86EFF" title="Violet"></button>
-                <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
-                <button class="sw" data-accent="rose" style="--sw:#FF548C" title="Rose"></button>
-              </div>
-            </div>
-          </div>
-          <!--
-          <div class="pillopt" data-pill="bloomcs" tabindex="0">
-            <div class="radio"></div>
-            <div>
-              <div class="enh-title">Bloom CS <span class="tag">native gpu</span></div>
-              <div class="enh-desc">The actual Orbloom shader on your GPU in a native window. Pixel-exact, no WebView, no approximation.</div>
-              <div class="pv" data-pv="bloom"><span class="pv-b"></span><span class="pv-t">Listening</span></div>
-            </div>
-          </div>
-          -->
-        </div>
-
-        <div class="section-title">Appearance</div>
-        <div class="rows">
-          <div class="row">
-            <div class="info">
-              <div class="t">Color theme</div>
-              <div class="d">Choose between dark obsidian and paper-light mode.</div>
-            </div>
-            <div class="theme-toggle-group" id="theme-toggle-group">
-              <button class="theme-opt active" data-theme="dark" type="button" tabindex="0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                <span>Dark</span>
-              </button>
-              <button class="theme-opt" data-theme="light" type="button" tabindex="0">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-                <span>Light</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="section-title">System</div>
-        <div class="rows">
-          <div class="row">
-            <div class="info"><div class="t">Launch at startup</div><div class="d">Keep Quotal in the tray so it is ready before you are.</div></div>
-            <div class="switch" id="autostart" tabindex="0" role="switch"></div>
-          </div>
-          <div class="row">
-            <div class="info"><div class="t">Floating pill position</div><div class="d">Snap the recording pill back to bottom-centre.</div></div>
-            <button class="btn" id="pill-reset">Reset</button>
-          </div>
-        </div>
-
-        <div class="section-title">How it works</div>
-        <div class="steps">
-          <div class="step"><b>i.</b><span class="st">Click into any text field</span>Browser, Slack, VS Code, Word — anywhere with a cursor.</div>
-          <div class="step"><b>ii.</b><span class="st">Hold and speak</span>Hold <kbd>Right Alt</kbd> or <kbd>F8</kbd> and talk like you normally would.</div>
-          <div class="step"><b>iii.</b><span class="st">Let go to paste</span>Cleaned-up text appears where you left the cursor.</div>
-        </div>
-
-        <div class="section-title">About</div>
-        <div class="about">
-          <img src="quotal_icon.png" onerror="this.onerror=null; this.src='../../assets/quotal_icon.png'" alt="">
-          <div><div class="t">Quotal</div><div class="d">Private, on-device dictation for Windows.</div></div>
-          <span class="mono-note">audio never leaves this pc</span>
         </div>
       </section>
     </div>
   </main>
 </div>
 
-<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span id="toast-text">Copied</span></div>
+<div class="toast" id="toast" role="status" aria-atomic="true"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><span id="toast-text"></span></div>
 
-<div class="modal-bg" id="modal">
-  <div class="modal">
+<div class="modal-bg" id="modal" inert>
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-desc">
     <h4 id="modal-title">Clear everything?</h4>
     <p id="modal-desc">This deletes every saved dictation on this device. There is no undo.</p>
     <div class="acts"><button class="btn" id="m-cancel">Keep it</button><button class="btn del" id="m-ok">Delete all</button></div>
@@ -1855,6 +2148,82 @@ let selectedEpochs = new Set();
 let currentTheme = 'dark';
 try { currentTheme = localStorage.getItem('quotal_theme') || 'dark'; } catch(e) {}
 
+const basePalette = { mode: 'default', accent: '#ffad87', gradient: '#6d5ba1' };
+const validColor = value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+let palette = { ...basePalette };
+let paletteWrite = Promise.resolve();
+
+function loadPalette(saved) {
+  palette = {
+    mode: saved?.mode === 'custom' ? 'custom' : 'default',
+    accent: validColor(saved?.accent) ? saved.accent : basePalette.accent,
+    gradient: validColor(saved?.gradient) ? saved.gradient : basePalette.gradient
+  };
+  renderPalette();
+}
+
+function renderPalette() {
+  const root = document.documentElement;
+  const custom = palette.mode === 'custom';
+  root.toggleAttribute('data-custom-palette', custom);
+  const rgb = palette.accent.slice(1).match(/../g).map(channel => parseInt(channel, 16));
+  if (custom) {
+    root.style.setProperty('--accent-rgb', rgb.join(','));
+    root.style.setProperty('--picked-accent', palette.accent);
+    root.style.setProperty('--picked-gradient', palette.gradient);
+    // Adjust accent text only when its luminance would obscure it against the surface.
+    const light = currentTheme === 'light';
+    const linear = rgb.map(v => (v / 255 <= .04045 ? v / 3294.6 : ((v / 255 + .055) / 1.055) ** 2.4));
+    const luminance = .2126 * linear[0] + .7152 * linear[1] + .0722 * linear[2];
+    const ink = light && luminance > .14 ? 'black' : !light && luminance < .24 ? 'white' : null;
+    root.style.setProperty('--readable-accent', ink ? `color-mix(in srgb, ${palette.accent} 48%, ${ink})` : palette.accent);
+  } else {
+    for (const prop of ['--accent-rgb','--picked-accent','--picked-gradient','--readable-accent']) root.style.removeProperty(prop);
+  }
+  $('#palette-editors').hidden = !custom;
+  for (const btn of document.querySelectorAll('[data-palette]')) {
+    const active = btn.dataset.palette === palette.mode;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  }
+  for (const row of document.querySelectorAll('[data-color-role]')) {
+    const value = palette[row.dataset.colorRole];
+    row.querySelector('[type=color]').value = value;
+    row.querySelector('[type=text]').value = value.toUpperCase();
+  }
+}
+
+function savePalette() {
+  const saved = { ...palette };
+  try { localStorage.setItem('quotal_palette', JSON.stringify(saved)); } catch {}
+  if (api) {
+    paletteWrite = paletteWrite.then(() => api.set_setting('dashboard_palette', saved))
+      .catch(() => toast('Could not save palette to dashboard settings'));
+  }
+}
+
+for (const btn of document.querySelectorAll('[data-palette]')) {
+  btn.onclick = () => { palette.mode = btn.dataset.palette; renderPalette(); savePalette(); };
+}
+for (const row of document.querySelectorAll('[data-color-role]')) {
+  const key = row.dataset.colorRole;
+  const picker = row.querySelector('[type=color]');
+  const hex = row.querySelector('[type=text]');
+  picker.oninput = () => { palette[key] = picker.value; renderPalette(); };
+  picker.onchange = () => { palette[key] = picker.value; renderPalette(); savePalette(); };
+  hex.onchange = () => {
+    let value = hex.value.trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(value)) value = [...value].map(c => c + c).join('');
+    if (validColor('#' + value)) {
+      palette[key] = '#' + value.toLowerCase();
+      savePalette();
+    } else toast('Enter a hex color, such as #6D5BA1');
+    renderPalette();
+  };
+  hex.onkeydown = event => { if (event.key === 'Enter') hex.blur(); };
+}
+try { loadPalette(JSON.parse(localStorage.getItem('quotal_palette'))); } catch { loadPalette(null); }
+
 // ---------- Theme Management ----------
 function applyTheme(theme, notify = false) {
   theme = (theme === 'light') ? 'light' : 'dark';
@@ -1868,6 +2237,7 @@ function applyTheme(theme, notify = false) {
     document.documentElement.removeAttribute('data-theme');
   }
 
+  renderPalette();
   const quickBtn = $('#theme-quick-btn');
   if (quickBtn) {
     quickBtn.innerHTML = theme === 'light' ? ICON_MOON : ICON_SUN;
@@ -1876,6 +2246,7 @@ function applyTheme(theme, notify = false) {
 
   document.querySelectorAll('.theme-opt[data-theme]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.theme === theme);
+    btn.setAttribute('aria-pressed', String(btn.dataset.theme === theme));
   });
 
   if (notify) {
@@ -1883,52 +2254,132 @@ function applyTheme(theme, notify = false) {
   }
 }
 
-async function setTheme(theme, notify = true) {
-  applyTheme(theme, notify);
-  try {
+let themeTransition = null;
+let requestedTheme = null;
+let themeSave = Promise.resolve();
+function setTheme(theme, control) {
+  if (theme === (requestedTheme ?? currentTheme)) return;
+  requestedTheme = theme;
+  themeTransition?.skipTransition();
+  const update = () => {
+    if (theme !== requestedTheme) return;
+    applyTheme(theme, true);
+    requestedTheme = null;
     if (api) {
-      if (api.set_theme) await api.set_theme(theme);
-      else if (api.set_setting) await api.set_setting('theme', theme);
+      themeSave = themeSave.then(() => api.set_theme ? api.set_theme(theme) : api.set_setting('theme', theme)).catch(() => {});
     }
-  } catch(e) {}
+  };
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    update();
+    return;
+  }
+  const rect = control.getBoundingClientRect();
+  const x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const style = document.documentElement.style;
+  style.setProperty('--theme-x', x + 'px');
+  style.setProperty('--theme-y', y + 'px');
+  style.setProperty('--theme-radius', Math.ceil(radius) + 'px');
+  const transition = document.startViewTransition(update);
+  themeTransition = transition;
+  transition.ready.catch(() => {}); // A second click can skip the first snapshot.
+  transition.finished.finally(() => {
+    if (themeTransition === transition) themeTransition = null;
+  });
 }
 
 const themeQuickBtn = $('#theme-quick-btn');
+for (const btn of document.querySelectorAll('#theme-toggle-group [data-theme]')) {
+  btn.addEventListener('click', () => setTheme(btn.dataset.theme, btn));
+}
 if (themeQuickBtn) {
   themeQuickBtn.addEventListener('click', () => {
-    const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme, true);
+    const nextTheme = (requestedTheme ?? currentTheme) === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme, themeQuickBtn);
   });
 }
 
 // ---------- Navigation ----------
-document.querySelectorAll('.nav-item').forEach(n => n.addEventListener('click', () => {
-  document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x === n));
+const dashboardNav = $('.nav-indicator').parentElement;
+const navItems = dashboardNav.querySelectorAll('.nav-item');
+const contentScroll = $('#scroll');
+navItems.forEach(n => n.addEventListener('click', () => {
+  navItems.forEach(item => {
+    const current = item === n;
+    item.classList.toggle('active', current);
+    if (current) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  });
+  dashboardNav.style.setProperty('--nav-offset', n.offsetTop + 'px');
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + n.dataset.view));
-  $('#scroll').scrollTop = 0;
+  contentScroll.scrollTop = 0;
 }));
+
+const settingsLinks = [...document.querySelectorAll('[data-settings-target]')];
+const settingsSections = settingsLinks.map(link => document.getElementById(link.dataset.settingsTarget));
+settingsLinks.forEach((link, index) => {
+  link.setAttribute('aria-controls', settingsSections[index].id);
+  link.addEventListener('click', () => {
+    settingsLinks.forEach((item, i) => {
+      settingsSections[i].hidden = i !== index;
+      if (i === index) item.setAttribute('aria-current', 'true');
+      else item.removeAttribute('aria-current');
+    });
+    contentScroll.scrollTop = 0;
+  });
+});
+
+function syncMotionVisibility() {
+  document.documentElement.toggleAttribute('data-backgrounded', document.hidden);
+}
+document.addEventListener('visibilitychange', syncMotionVisibility);
+syncMotionVisibility();
 
 // ---------- Toast ----------
 let toastTimer;
-function toast(msg) {
+function toast(msg, error = false) {
+  const notice = $('#toast');
   $('#toast-text').textContent = msg;
-  $('#toast').classList.add('show');
+  notice.classList.toggle('is-error', error);
+  notice.querySelector('path').setAttribute('d', error ? 'M7 7l10 10M17 7 7 17' : 'M5 12.5l4.5 4.5L19 7.5');
+  notice.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => $('#toast').classList.remove('show'), 1800);
+  toastTimer = setTimeout(() => notice.classList.remove('show'), 1800);
 }
 
 // ---------- Confirm modal ----------
 function confirmModal(title, desc, okText) {
   return new Promise(res => {
     const m = $('#modal');
+    const previousFocus = document.activeElement;
+    const cancel = $('#m-cancel');
+    const ok = $('#m-ok');
     $('#modal-title').textContent = title || 'Clear everything?';
     $('#modal-desc').textContent = desc || 'This deletes every saved dictation on this device. There is no undo.';
-    $('#m-ok').textContent = okText || 'Delete all';
+    ok.textContent = okText || 'Delete all';
+    m.inert = false;
     m.classList.add('show');
-    const done = v => { m.classList.remove('show'); $('#m-ok').onclick = $('#m-cancel').onclick = m.onclick = null; res(v); };
-    $('#m-ok').onclick = () => done(true);
-    $('#m-cancel').onclick = () => done(false);
+    cancel.focus();
+    const done = v => {
+      m.classList.remove('show');
+      m.inert = true;
+      ok.onclick = cancel.onclick = m.onclick = m.onkeydown = null;
+      if (previousFocus && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
+      res(v);
+    };
+    ok.onclick = () => done(true);
+    cancel.onclick = () => done(false);
     m.onclick = e => { if (e.target === m) done(false); };
+    m.onkeydown = e => {
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        done(false);
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        (e.target === cancel ? ok : cancel).focus();
+      }
+    };
   });
 }
 
@@ -1978,11 +2429,9 @@ function renderStats() {
   const todays = h.filter(e => dayLabel(parseTs(e.timestamp)) === 'Today');
   if (!todays.length) {
     $('#today-line').textContent = 'nothing yet today';
-    $('#history-lead').innerHTML = 'Everything you dictate lands here, ready to reuse.';
   } else {
     const last = todays.reduce((a, b) => parseTs(a.timestamp) > parseTs(b.timestamp) ? a : b);
     $('#today-line').textContent = todays.length + ' today · last ' + ago(parseTs(last.timestamp));
-    $('#history-lead').innerHTML = 'You have dictated <b>' + todays.length + ' ' + (todays.length === 1 ? 'time' : 'times') + ' today</b>. Nice.';
   }
 }
 
@@ -1999,13 +2448,32 @@ function highlight(el, text, q) {
   el.appendChild(document.createTextNode(text.slice(i)));
 }
 
+const copyResetTimers = new WeakMap();
+function resetCopyButton(btn) {
+  clearTimeout(copyResetTimers.get(btn));
+  copyResetTimers.delete(btn);
+  btn.classList.remove('ok');
+  btn.innerHTML = ICON_COPY;
+  btn.setAttribute('aria-label', 'Copy');
+}
 async function copyEntry(text, btn) {
-  try { if (api && api.copy) await api.copy(text); else await navigator.clipboard.writeText(text); } catch (e) {
-    try { await navigator.clipboard.writeText(text); } catch (_e) {}
+  let copied = false;
+  try { if (api && api.copy) copied = (await api.copy(text)) !== false; } catch (e) {}
+  if (!copied) {
+    try {
+      await navigator.clipboard.writeText(text);
+      copied = true;
+    } catch (e) {
+      if (btn && copyResetTimers.has(btn)) resetCopyButton(btn);
+      toast('Could not copy to clipboard', true);
+      return;
+    }
   }
   if (btn) {
+    clearTimeout(copyResetTimers.get(btn));
     btn.classList.add('ok'); btn.innerHTML = ICON_OK;
-    setTimeout(() => { btn.classList.remove('ok'); btn.innerHTML = ICON_COPY; }, 1400);
+    btn.setAttribute('aria-label', 'Copied');
+    copyResetTimers.set(btn, setTimeout(() => resetCopyButton(btn), 1400));
   }
   toast('Copied to clipboard');
 }
@@ -2097,11 +2565,13 @@ function renderHistory() {
 
     const act = document.createElement('div'); act.className = 'actions';
     const b = document.createElement('button'); b.className = 'icon-btn'; b.title = 'Copy'; b.innerHTML = ICON_COPY;
+    b.setAttribute('aria-label', 'Copy');
     b.onclick = ev => { ev.stopPropagation(); copyEntry(e.cleaned || '', b); };
 
     const del = document.createElement('button');
     del.className = 'icon-btn del-btn';
     del.title = 'Delete';
+    del.setAttribute('aria-label', 'Delete');
     del.innerHTML = ICON_TRASH;
     del.onclick = async ev => {
       ev.stopPropagation();
@@ -2499,7 +2969,6 @@ function renderLanguages() {
   
   const navCount = $('#nav-lang-count');
   if (navCount) navCount.textContent = selected.size || '1';
-
   const query = ($('#lang-search') ? $('#lang-search').value : '').trim().toLowerCase();
 
   const matches = (lang) => {
@@ -2524,16 +2993,17 @@ function renderLanguages() {
   const remainingLangs = all.filter(l => !l.popular && matches(l));
 
   if (allCount) {
-    const totalMatch = popularLangs.length + remainingLangs.length;
-    allCount.textContent = totalMatch ? '· ' + totalMatch : '';
+    allCount.textContent = remainingLangs.length ? '· ' + remainingLangs.length : '';
   }
 
-  if (quickTitle) quickTitle.style.display = (query && !popularLangs.length) ? 'none' : 'block';
+  if (quickTitle) quickTitle.hidden = !popularLangs.length;
+  if (allTitle) allTitle.hidden = !remainingLangs.length;
 
   const createCard = (lang) => {
     const isChecked = selected.has(lang.code);
     const card = document.createElement('div');
     card.className = 'lang-card' + (isChecked ? ' active' : '');
+    card.dataset.languageCode = lang.code;
     card.setAttribute('tabindex', '0');
     card.setAttribute('role', 'checkbox');
     card.setAttribute('aria-checked', isChecked ? 'true' : 'false');
@@ -2553,7 +3023,7 @@ function renderLanguages() {
 
     const nativeEl = document.createElement('div');
     nativeEl.className = 'lang-native';
-    nativeEl.textContent = lang.native || lang.name;
+    nativeEl.textContent = lang.native && lang.native !== lang.name ? lang.native : '';
 
     info.append(nameEl, nativeEl);
 
@@ -2561,7 +3031,11 @@ function renderLanguages() {
     check.className = 'lang-check';
     check.innerHTML = ICON_CHECK;
 
-    card.append(info, check);
+    const locale = document.createElement('span');
+    locale.className = 'locale-tile';
+    locale.setAttribute('aria-hidden', 'true');
+    locale.textContent = lang.code === 'hinglish' ? 'HI+' : lang.code.split('-')[0].toUpperCase();
+    card.append(locale, info, check);
 
     const toggle = async () => {
       let curList = Array.from(selected);
@@ -2576,7 +3050,12 @@ function renderLanguages() {
       }
       const updatedList = Array.from(selected);
       state.settings.selected_languages = updatedList;
+      const restoreFocus = card === document.activeElement;
       renderLanguages();
+      if (restoreFocus) {
+        const replacement = [...document.querySelectorAll('.lang-card')].find(item => item.dataset.languageCode === lang.code);
+        replacement?.focus({ preventScroll: true });
+      }
       renderModels();
       try {
         if (api && api.set_selected_languages) {
@@ -3401,15 +3880,6 @@ function renderSettings() {
     });
   }
 
-  // Appearance (theme)
-  const activeTheme = (state.settings && state.settings.theme) ? state.settings.theme : currentTheme;
-  document.querySelectorAll('.theme-opt[data-theme]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.theme === activeTheme);
-    btn.onclick = () => {
-      const chosenTheme = btn.dataset.theme;
-      setTheme(chosenTheme, true);
-    };
-  });
 }
 
 // ---------- Selection Mode ----------
@@ -3586,6 +4056,7 @@ async function initPywebview() {
     return;
   }
   const theme = (state.settings && state.settings.theme) ? state.settings.theme : currentTheme;
+  loadPalette(state.settings?.dashboard_palette ?? palette);
   applyTheme(theme, false);
   try {
     if (api && api.set_theme) api.set_theme(theme);
