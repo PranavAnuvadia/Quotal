@@ -65,6 +65,7 @@ class AudioRecorder:
         self.is_recording = False
         self._lock = threading.Lock()
         self.current_level = 0.0  # Normalized 0.0 to 1.0 for visual meter
+        self.chunk_callback = None
         self._init_stream()
 
     def _init_stream(self):
@@ -122,6 +123,30 @@ class AudioRecorder:
         # Smooth and scale RMS (voice usually ranges from 0.001 to 0.2)
         scaled = min(1.0, float(rms * 12.0))
         self.current_level = self.current_level * 0.4 + scaled * 0.6
+
+        # Stream chunk to consumer callback if registered
+        cb = self.chunk_callback
+        if cb is not None:
+            if self.stream_sr == 48000 and self.sample_rate == 16000:
+                n = len(audio_chunk) - (len(audio_chunk) % 3)
+                c16 = audio_chunk[:n].reshape(-1, 3).mean(axis=1).astype(np.float32)
+            elif self.stream_sr != self.sample_rate and len(audio_chunk) > 0:
+                num_samples = int(len(audio_chunk) * self.sample_rate / self.stream_sr)
+                c16 = np.interp(
+                    np.linspace(0, len(audio_chunk), num_samples, endpoint=False),
+                    np.arange(len(audio_chunk)),
+                    audio_chunk
+                ).astype(np.float32)
+            else:
+                c16 = audio_chunk
+            try:
+                cb(c16)
+            except Exception:
+                pass
+
+    def set_chunk_callback(self, callback):
+        """Set a real-time callback that receives 16kHz float32 audio chunks."""
+        self.chunk_callback = callback
 
     def start(self):
         """Start capturing audio instantly (0ms latency, persistent stream)."""

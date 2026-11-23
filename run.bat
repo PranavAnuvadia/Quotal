@@ -1,3 +1,3 @@
 @echo off
 cd /d "%~dp0"
-start "" "%~dp0Quotal.exe" %*
+start "" "%~dp0.venv\Scripts\pythonw.exe" "%~dp0app.py" %*

@@ -1,6 +1,6 @@
 """
 dashboard_ui.py - Ultra-Modern Desktop Dashboard for WinVoice.
-Aesthetic: Raycast / Wispr Flow / Linear dark minimalist UI.
+Aesthetic: Raycast / Linear dark minimalist UI.
 Features:
 - Sleek topbar with active engine status & quick metric chips
 - Pill-based tab navigation (History, Models, Settings)
@@ -63,6 +63,30 @@ MODEL_CARDS_DATA = {
         "specs": ["240 MB", "High Precision", "~800ms Latency", "CPU/CUDA"],
         "desc": "Full acoustic recognition with expanded vocabulary. Excels at complex technical terms, programming jargon, and background noise.",
         "highlight": "Maximum Accuracy"
+    },
+    "turbo": {
+        "title": "Whisper Large Turbo",
+        "badge": "🌐 SOTA Multilingual",
+        "tag_color": "#8b5cf6",
+        "specs": ["800 MB", "Top Precision", "~700ms Latency", "99+ Langs"],
+        "desc": "OpenAI flagship multilingual architecture. Delivers unmatched recognition for Hindi, Marathi, and global languages with high speed.",
+        "highlight": "Best Multilingual"
+    },
+    "omnilingual": {
+        "title": "Omnilingual ASR",
+        "badge": "⚡ 1,600+ Languages",
+        "tag_color": "#06b6d4",
+        "specs": ["328 MB", "1,600+ Langs", "~150ms Latency", "CPU Instant"],
+        "desc": "Meta AI 1,600+ languages via sherpa-onnx. Zero translation traps, instant CPU execution, and native Hindi/Marathi/Gujarati code-mixing.",
+        "highlight": "Fastest Multilingual"
+    },
+    "hima": {
+        "title": "Hima ASR",
+        "badge": "🇮🇳 12 Indian Languages",
+        "tag_color": "#ec4899",
+        "specs": ["0.46B", "12 Langs + Hinglish", "ONNX CPU", "Low Latency"],
+        "desc": "Specialized open-weight Indian ASR with decision head. Native support for Hindi, Gujarati, Tamil, Telugu, and English with code-switching.",
+        "highlight": "Best for Indian Languages"
     }
 }
 
@@ -196,7 +220,7 @@ class DashboardUI:
 
         ctk.CTkLabel(
             titles_box,
-            text="Voice Dictation · Wispr Flow for Windows",
+            text="Voice Dictation · for Windows",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color=C_TEXT_MUTED
         ).pack(anchor="w")

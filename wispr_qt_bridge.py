@@ -1,5 +1,5 @@
 """
-wispr_qt_bridge.py - Engine adapter for the Wispr pill (Quotal side).
+wispr_qt_bridge.py - Engine adapter for the capsule pill (Quotal side).
 
 `wispr_pill.py` is the author's file, kept VERBATIM (do not edit it).
 This bridge is OUR code: it imports Pill/AudioSource untouched and only

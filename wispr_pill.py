@@ -1,5 +1,5 @@
 """
-Wispr Flow style recording pill (PySide6).
+Minimal black-capsule style recording pill (PySide6).
 
     pip install PySide6 sounddevice numpy
     python wispr_pill.py            # real microphone

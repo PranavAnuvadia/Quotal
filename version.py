@@ -5,4 +5,4 @@ in-app OTA updater (updater.py) both read it — never hardcode the version
 anywhere else.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.3"

@@ -5,7 +5,7 @@
 # ❝ Quotal
 
 ### Ultra-fast, 100% Offline AI Voice Dictation for Windows
-*Inspired by Wispr Flow. Built natively for Windows with local Whisper models, Hinglish romanization, and instant cursor paste.*
+*100% offline voice dictation, built natively for Windows with local Whisper models, Hinglish romanization, and instant cursor paste.*
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?logo=windows)](https://microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://python.org)
@@ -39,7 +39,7 @@ Press and hold your hotkey, speak naturally, and release—the transcription is 
   - Zero audio leaves your computer. No cloud accounts, tokens, or subscription fees required.
 - **✨ Dual-Mode AI Text Enhancement (Choose your flavor in Settings)**:
   - ⚡ **Instant Fast (Rules)**: 0ms latency, zero RAM. Automatically strips hesitations, drops speech stutters, self-corrections (*"meet at 5, no wait, 6 pm"* ➔ *"meet at 6 pm"*), expands contractions, and fixes phonetic slang (*"badi"* ➔ *"buddy"*).
-  - 🧠 **AI Neural Polish (Qwen 2.5 0.5B)**: Offline local LLM pass inspired by Wispr Flow. Automatically corrects complex grammar, reorganizes messy dictation, formats multi-step lists, and cleans conversational run-on speech.
+  - 🧠 **AI Neural Polish (Qwen 2.5 0.5B)**: Offline local LLM pass. Automatically corrects complex grammar, reorganizes messy dictation, formats multi-step lists, and cleans conversational run-on speech.
   - ⚪ **Off**: Output raw Whisper dictation directly without modifications.
 - **🧹 Deterministic Hesitation & Filler Removal**:
   - Deterministically removes filler vocalizations (*"um"*, *"uh"*, *"hmm"*, *"ah"*, *"er"*) while preserving genuine vocabulary (like Hindi *"hum"* or English *"err"*).
@@ -179,7 +179,7 @@ From the **Quotal Dashboard**, navigate to the **Enhancement** section to select
   - Recommended default.
   - Deterministically removes vocal fillers (*"um"*, *"uh"*, *"hmm"*), drops self-corrections (*"let's meet at 5, wait no, 6"* ➔ *"let's meet at 6"*), and expands spoken abbreviations.
 - 🧠 **AI Neural Polish (Local Qwen 2.5 0.5B LLM)**:
-  - Deep grammar and structural restructuring model inspired by Wispr Flow.
+  - Deep grammar and structural restructuring model for messy dictation.
   - Click **Download Model** directly inside the Dashboard (downloads the quantized 390 MB model locally).
   - Runs 100% locally on your machine with zero cloud calls.
 - ⚪ **Off**:

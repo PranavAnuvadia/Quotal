@@ -39,6 +39,10 @@ import history_manager
 import settings_manager
 import win_startup
 import smart_enhancer
+import model_manager
+import gpu_pack
+import updater
+import languages
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -53,12 +57,54 @@ ENGINE_PORT = 48291
 DASH_PORT = 48292
 
 MODELS = [
-    {"key": "base", "title": "Whisper Base", "tag": "Fastest (~300ms)", "size": "75 MB", "device": "GPU",
-     "desc": "Ultra-fast everyday English dictation with near-zero latency."},
-    {"key": "hinglish_swift", "title": "Hinglish Swift", "tag": "Hindi + English", "size": "145 MB", "device": "GPU",
-     "desc": "Tuned for Romanized Hindi & conversational Hinglish."},
-    {"key": "small", "title": "Whisper Small", "tag": "High Accuracy", "size": "240 MB", "device": "GPU",
-     "desc": "Superior accuracy for technical jargon, names, and noisy rooms."},
+    {
+        "key": "nemotron", "title": "Nemotron Streaming 3.5", "tag": "Live Preview (~50ms)", "size": "716 MB", "device": "GPU",
+        "desc": "NVIDIA 0.6B streaming ASR on Vulkan GPU. Instant real-time words as you speak with zero lag.",
+        "streaming": True, "translates": False, "speed_bars": 4, "speed_text": "Instant (~50ms)",
+        "languages": {"en": "A", "hi": "B-", "es": "A-", "fr": "A-", "de": "A-", "it": "B+", "pt": "B+", "ru": "B"},
+    },
+    {
+        "key": "parakeet_v3", "title": "NVIDIA Parakeet v3", "tag": "Ultra Accurate (4.8% WER)", "size": "705 MB", "device": "CPU",
+        "desc": "NVIDIA Parakeet TDT 0.6B v3 offline ASR on CPU AVX2. SOTA English accuracy with under 1s latency.",
+        "streaming": False, "translates": False, "speed_bars": 3, "speed_text": "Fast (~800ms)",
+        "languages": {"en": "A+", "es": "B+", "fr": "B", "de": "B", "it": "B"},
+    },
+    {
+        "key": "base", "title": "Whisper Base", "tag": "Fastest (~300ms)", "size": "75 MB", "device": "GPU",
+        "desc": "Ultra-fast everyday English & multilingual dictation with near-zero latency.",
+        "streaming": False, "translates": True, "speed_bars": 4, "speed_text": "Ultra-fast (~300ms)",
+        "languages": {"en": "A-", "hi": "C", "es": "B+", "fr": "B+", "de": "B+", "it": "B", "pt": "B", "ru": "B", "zh": "C", "ja": "C"},
+    },
+    {
+        "key": "hinglish_swift", "title": "Hinglish Swift", "tag": "Hindi + English", "size": "145 MB", "device": "GPU",
+        "desc": "Tuned for Romanized Hindi & conversational Hinglish ('kya haal hai bro').",
+        "streaming": False, "translates": False, "speed_bars": 4, "speed_text": "Ultra-fast (~250ms)",
+        "languages": {"en": "A-", "hi": "A", "hinglish": "A+"},
+    },
+    {
+        "key": "hima", "title": "Hima ASR", "tag": "12 Indian Langs", "size": "550 MB", "device": "CPU",
+        "desc": "Indian multilingual ASR with decision head. Native Hindi, Gujarati, Tamil, Telugu, and English with code-switching.",
+        "streaming": False, "translates": False, "speed_bars": 4, "speed_text": "Fast (~220ms)",
+        "languages": {"hi": "A+", "en": "A-", "gu": "A+", "ta": "A+", "te": "A+", "mr": "A", "bn": "A", "kn": "A", "ml": "A", "pa": "A", "or": "A", "ur": "A"},
+    },
+    {
+        "key": "turbo", "title": "Whisper Large Turbo", "tag": "Best Multilingual", "size": "800 MB", "device": "GPU",
+        "desc": "Flagship 99+ language accuracy with high speed. Best for Marathi, Hindi, and global languages.",
+        "streaming": False, "translates": True, "speed_bars": 3, "speed_text": "Fast (~500ms)",
+        "languages": {"en": "A+", "hi": "A", "mr": "A", "es": "A+", "fr": "A+", "de": "A+", "it": "A+", "pt": "A+", "ru": "A+", "zh": "A", "ja": "A", "ko": "A", "ar": "A"},
+    },
+    {
+        "key": "small", "title": "Whisper Small", "tag": "High Accuracy", "size": "240 MB", "device": "GPU",
+        "desc": "Superior accuracy for technical jargon, names, and noisy rooms.",
+        "streaming": False, "translates": True, "speed_bars": 3, "speed_text": "Moderate (~600ms)",
+        "languages": {"en": "A", "hi": "B+", "es": "A-", "fr": "A-", "de": "A-", "it": "A-", "pt": "A-", "ru": "A-", "zh": "B+", "ja": "B+"},
+    },
+    {
+        "key": "omnilingual", "title": "Omnilingual ASR", "tag": "1,600+ Languages", "size": "328 MB", "device": "CPU",
+        "desc": "Meta AI 1,600+ languages via sherpa-onnx. Instant CPU latency (~150ms) with zero translation traps.",
+        "streaming": False, "translates": False, "speed_bars": 4, "speed_text": "Instant (~150ms)",
+        "languages": {"en": "B+", "hi": "A-", "mr": "B+", "gu": "B+", "ta": "B+", "te": "B+", "es": "B+", "fr": "B+", "de": "B+"},
+    },
 ]
 
 window = None
@@ -97,15 +143,58 @@ def _history_mtime() -> float:
 
 
 class Api:
+    def _models_with_status(self):
+        status = {m["key"]: m for m in model_manager.get_models_state()}
+        cur_device_setting = settings_manager.load_settings().get("device", "auto")
+        is_cuda = False
+        if cur_device_setting != "cpu":
+            try:
+                from transcriber import cuda_libs_present
+                import ctranslate2
+                is_cuda = cuda_libs_present() and (ctranslate2.get_cuda_device_count() > 0)
+            except Exception:
+                is_cuda = False
+        device_label = "GPU" if is_cuda else "CPU"
+
+        out = []
+        for m in MODELS:
+            s = status.get(m["key"], {})
+            out.append({
+                **m,
+                "device": "CPU" if m["key"] in ("omnilingual", "parakeet_v3") else ("GPU" if m["key"] == "nemotron" else device_label),
+                "downloaded": s.get("downloaded", True),
+                "downloading": s.get("downloading", False),
+                "progress": s.get("progress", ""),
+                "bundled": model_manager.MODEL_SOURCES.get(m["key"], {}).get("kind") == "local",
+            })
+        return out
+
     def get_state(self):
+        updater.refresh_async()
+        gpu_pack.refresh_async()
         return {
             "history": history_manager.get_recent(limit=200),
             "mtime": _history_mtime(),
             "settings": settings_manager.load_settings(),
             "autostart": win_startup.is_autostart_enabled(),
-            "models": MODELS,
+            "models": self._models_with_status(),
+            "languages": languages.get_languages(),
             "llm_status": smart_enhancer.get_llm_status(),
+            "dictionary": smart_enhancer.get_dictionary_entries(),
+            "update": updater.get_status(),
+            "gpu": gpu_pack.get_status(),
         }
+
+    def set_selected_languages(self, codes):
+        if not isinstance(codes, list):
+            return {"ok": False}
+        clean_codes = [c for c in codes if isinstance(c, str) and c]
+        if not clean_codes:
+            clean_codes = ["en"]
+        s = settings_manager.load_settings()
+        s["selected_languages"] = clean_codes
+        settings_manager.save_settings(s)
+        return {"ok": True, "selected_languages": clean_codes}
 
     def poll(self, mtime):
         m = _history_mtime()
@@ -115,13 +204,100 @@ class Api:
                 "changed": True,
                 "mtime": m,
                 "history": history_manager.get_recent(limit=200),
-                "llm_status": llm
+                "llm_status": llm,
+                "models": self._models_with_status(),
+                "update": updater.get_status(),
+                "gpu": gpu_pack.get_status(),
             }
-        return {"changed": False, "llm_status": llm}
+        return {"changed": False, "llm_status": llm, "models": self._models_with_status(),
+                "update": updater.get_status(), "gpu": gpu_pack.get_status()}
+
+    def gpu_download(self):
+        gpu_pack.start_download()
+        return gpu_pack.get_status()
+
+    def gpu_delete(self):
+        try:
+            st = gpu_pack.delete_pack()
+            ok = bool(st.pop("ok", True))
+            return {"ok": ok, "reason": st.pop("reason", ""), "gpu": st}
+        except Exception:
+            return {"ok": False, "reason": "", "gpu": gpu_pack.get_status()}
+
+    def check_updates(self):
+        updater.refresh_async()
+        return updater.get_status()
+
+    def download_update(self):
+        updater.download_async()
+        return updater.get_status()
+
+    def install_update(self):
+        st = updater.get_status()
+        path = st.get("path")
+        kind = st.get("kind", "patch")
+        if not path or st.get("phase") != "ready":
+            return {"ok": False}
+
+        def _quit_all():
+            _send_engine("quit")
+            try:
+                import time
+                time.sleep(0.5)
+            except Exception:
+                pass
+            try:
+                if window:
+                    window.destroy()
+            except Exception:
+                pass
+            os._exit(0)
+
+        if kind == "patch":
+            ok = updater.apply_patch_and_restart(path, _quit_all)
+        else:
+            ok = updater.launch_installer_and_quit(path, _quit_all)
+        return {"ok": ok}
+
+    def download_model(self, key):
+        model_manager.start_download(key)
+        return self._models_with_status()
+
+    def delete_model(self, key):
+        if key == settings_manager.load_settings().get("model_key"):
+            return {"ok": False, "reason": "active", "models": self._models_with_status()}
+        res = model_manager.delete_model(key)
+        return {"ok": res.get("ok", False), "reason": res.get("reason", ""),
+                "models": self._models_with_status()}
+
+    def delete_llm(self):
+        try:
+            st = smart_enhancer.delete_llm_files()
+            ok = bool(st.pop("ok", True))
+            return {"ok": ok, "reason": st.pop("reason", ""), "llm_status": st}
+        except Exception:
+            return {"ok": False, "reason": "", "llm_status": smart_enhancer.get_llm_status()}
 
     def download_llm(self):
         smart_enhancer.start_llm_download()
         return smart_enhancer.get_llm_status()
+
+    def get_dictionary(self):
+        return smart_enhancer.get_dictionary_entries()
+
+    def add_dictionary_entry(self, spoken, written):
+        try:
+            entries = smart_enhancer.add_dictionary_entry(spoken, written)
+            return {"ok": True, "dictionary": entries}
+        except Exception:
+            return {"ok": False, "dictionary": smart_enhancer.get_dictionary_entries()}
+
+    def remove_dictionary_entry(self, spoken):
+        try:
+            entries = smart_enhancer.remove_dictionary_entry(spoken)
+            return {"ok": True, "dictionary": entries}
+        except Exception:
+            return {"ok": False, "dictionary": smart_enhancer.get_dictionary_entries()}
 
     def copy(self, text):
         try:
@@ -186,9 +362,20 @@ class Api:
         _send_engine(f"model:{key}")
         return True
 
+    def select_device(self, key):
+        if key not in ("auto", "cuda", "cpu"):
+            return {"ok": False, "live": False}
+        s = settings_manager.load_settings()
+        s["device"] = key
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"device:{key}")
+        return {"ok": True, "live": live}
+
     def select_pill(self, key):
         # if key not in ("orb", "ember", "meter", "halo", "bloom", "nova", "pulse", "wispr", "bloomcs"):
-        if key not in ("bloom", "wispr"):
+        if key not in ("bloom", "wispr", "quotal", "quotal-light", "aurora", "nothing", "mercury", "orbit", "scribe", "opus", "neon", "flipboard", "receipt", "face", "cassette", "crt"):
             return {"ok": False, "live": False}
         s = settings_manager.load_settings()
         s["pill_style"] = key
@@ -198,6 +385,150 @@ class Api:
         live = _query_engine("version?").startswith("quotal:")
         if live:
             _send_engine(f"pill:{key}")
+        return {"ok": True, "live": live}
+
+    def set_nothing_accent(self, value):
+        import re
+        v = str(value or "").strip()
+        if v in ("amber", "white", "red", "mint", "ice"):
+            norm = v
+        else:
+            m = re.match(r"^#?([0-9a-fA-F]{6})$", v)
+            if not m:
+                return {"ok": False, "live": False}
+            norm = "#" + m.group(1).upper()
+        s = settings_manager.load_settings()
+        s["nothing_accent"] = norm
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"pillaccent:{norm}")
+        return {"ok": True, "live": live}
+
+    def set_mercury_accent(self, value):
+        import re
+        v = str(value or "").strip()
+        if v in ("orange", "ice", "violet", "mint", "mono"):
+            norm = v
+        else:
+            m = re.match(r"^#?([0-9a-fA-F]{6})$", v)
+            if not m:
+                return {"ok": False, "live": False}
+            norm = "#" + m.group(1).upper()
+        s = settings_manager.load_settings()
+        s["mercury_accent"] = norm
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"mercuryaccent:{norm}")
+        return {"ok": True, "live": live}
+
+    def set_orbit_accent(self, value):
+        v = str(value or "").strip()
+        if v not in ("ion", "solar", "plasma", "mint", "mono"):
+            return {"ok": False, "live": False}
+        s = settings_manager.load_settings()
+        s["orbit_accent"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"orbitaccent:{v}")
+        return {"ok": True, "live": live}
+
+    def set_scribe_accent(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("orange", "ice", "violet", "mint", "rose"):
+            v = "orange"
+        s = settings_manager.load_settings()
+        s["scribe_accent"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"scribeaccent:{v}")
+        return {"ok": True, "live": live}
+
+    def set_opus_accent(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("orange", "ice", "violet", "mint", "rose"):
+            v = "orange"
+        s = settings_manager.load_settings()
+        s["opus_accent"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"opusaccent:{v}")
+        return {"ok": True, "live": live}
+
+    def set_neon_theme(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("sunset", "cyber", "toxic", "rose", "ice"):
+            v = "cyber"
+        s = settings_manager.load_settings()
+        s["neon_theme"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"neontheme:{v}")
+        return {"ok": True, "live": live}
+
+    def set_flipboard_style(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("classic", "amber", "mint", "ice"):
+            v = "amber"
+        s = settings_manager.load_settings()
+        s["flipboard_style"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"flipboardstyle:{v}")
+        return {"ok": True, "live": live}
+
+    def set_receipt_body(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("cream", "graphite"):
+            v = "cream"
+        s = settings_manager.load_settings()
+        s["receipt_body"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"receiptbody:{v}")
+        return {"ok": True, "live": live}
+
+    def set_cassette_body(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("orange", "black", "cream"):
+            v = "orange"
+        s = settings_manager.load_settings()
+        s["cassette_body"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"cassettebody:{v}")
+        return {"ok": True, "live": live}
+
+    def set_crt_case(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("walnut", "mint", "graphite"):
+            v = "walnut"
+        s = settings_manager.load_settings()
+        s["crt_case"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"crtcase:{v}")
+        return {"ok": True, "live": live}
+
+    def set_crt_phosphor(self, value):
+        v = str(value or "").strip().lower()
+        if v not in ("amber", "green", "white"):
+            v = "amber"
+        s = settings_manager.load_settings()
+        s["crt_phosphor"] = v
+        settings_manager.save_settings(s)
+        live = _query_engine("version?").startswith("quotal:")
+        if live:
+            _send_engine(f"crtphosphor:{v}")
         return {"ok": True, "live": live}
 
 

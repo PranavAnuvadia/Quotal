@@ -12,6 +12,8 @@ STARTUP_DIR = os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Progra
 SHORTCUT_PATH = os.path.join(STARTUP_DIR, "Quotal.lnk")
 OLD_SHORTCUT_PATH = os.path.join(STARTUP_DIR, "WinVoice.lnk")
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PYTHONW_PATH = os.path.join(PROJECT_DIR, ".venv", "Scripts", "pythonw.exe")
+APP_PATH = os.path.join(PROJECT_DIR, "app.py")
 EXE_PATH = os.path.join(PROJECT_DIR, "Quotal.exe")
 ICON_PATH = os.path.join(PROJECT_DIR, "quotal.ico")
 
@@ -43,12 +45,14 @@ def _create_shortcut():
                 os.remove(OLD_SHORTCUT_PATH)
             except Exception:
                 pass
+        target = PYTHONW_PATH if os.path.exists(PYTHONW_PATH) else EXE_PATH
+        args = f'"{APP_PATH}" --silent' if os.path.exists(PYTHONW_PATH) else "--silent"
         vbs_script = f'''
 Set oWS = WScript.CreateObject("WScript.Shell")
 sLinkFile = "{SHORTCUT_PATH}"
 Set oLink = oWS.CreateShortcut(sLinkFile)
-oLink.TargetPath = "{EXE_PATH}"
-oLink.Arguments = "--silent"
+oLink.TargetPath = "{target}"
+oLink.Arguments = '{args}'
 oLink.WorkingDirectory = "{PROJECT_DIR}"
 oLink.Description = "Quotal AutoStart"
 oLink.IconLocation = "{ICON_PATH},0"
@@ -71,7 +75,10 @@ def set_autostart(enable: bool) -> bool:
         # 1. Primary: HKCU Run registry key (standard Windows desktop app startup)
         try:
             with winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_SUBKEY, 0, winreg.KEY_SET_VALUE) as key:
-                cmd = f'"{EXE_PATH}" --silent'
+                if os.path.exists(PYTHONW_PATH):
+                    cmd = f'"{PYTHONW_PATH}" "{APP_PATH}" --silent'
+                else:
+                    cmd = f'"{EXE_PATH}" --silent'
                 winreg.SetValueEx(key, REG_VAL_NAME, 0, winreg.REG_SZ, cmd)
                 try:
                     winreg.DeleteValue(key, OLD_REG_VAL_NAME)

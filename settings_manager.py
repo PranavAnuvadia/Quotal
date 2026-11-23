@@ -9,15 +9,27 @@ import json
 SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.json")
 
 DEFAULT_SETTINGS = {
-    "model_key": "base",  # "base", "hinglish_swift", "small"
-    "device": "cpu",       # "cpu" or "cuda"
+    "model_key": "base",  # "base", "hinglish_swift", "small", "turbo"
+    "selected_languages": ["en"],  # list of language codes e.g. ["en", "hi", "mr"]
+    "device": "auto",      # "auto" (probe GPU, fall back to CPU) | "cuda" | "cpu"
     "ai_enhance": True,
     "enhancer_mode": "rules",  # "rules" (instant), "llm" (qwen 0.5b), "off"
     "strip_hesitations": True,
     "audio_chimes": True,
     "pill_x": None,
     "pill_y": None,
-    "pill_style": "bloom",  # "bloom", "wispr" (commented out: "orb", "ember", "meter", "halo", "nova", "pulse", "bloomcs")
+    "pill_style": "bloom",  # "bloom", "wispr", "quotal", "quotal-light", "aurora", "nothing", "mercury", "orbit", "scribe", "opus", "neon", "flipboard", "receipt", "face", "cassette", "crt" (commented out: "orb", "ember", "meter", "halo", "nova", "pulse", "bloomcs")
+    "orbit_accent": "ion",  # Orbit pill colour: ion | solar | plasma | mint | mono
+    "mercury_accent": "orange",  # Mercury pill reflection: preset name or hex #RRGGBB
+    "nothing_accent": "white",  # Nothing pill LEDs: preset name or hex #RRGGBB
+    "scribe_accent": "orange",  # Scribe pill accent: orange | ice | violet | mint | rose
+    "opus_accent": "orange",  # Opus pill accent: orange | ice | violet | mint | rose
+    "neon_theme": "cyber",    # Neon pill theme: sunset | cyber | toxic | rose | ice
+    "flipboard_style": "amber",  # Flipboard pill style: classic | amber | mint | ice
+    "receipt_body": "cream",  # Receipt pill body: cream | graphite
+    "cassette_body": "orange",  # Cassette pill body: orange | black | cream
+    "crt_case": "walnut",      # CRT pill case: walnut | mint | graphite
+    "crt_phosphor": "amber",   # CRT pill phosphor: amber | green | white
     "theme": "dark",        # "dark" or "light"
 }
 
@@ -39,6 +51,36 @@ MODEL_CONFIGS = {
         "path": "small",
         "device": "auto",
         "compute_type": "auto"
+    },
+    "turbo": {
+        "name": "Whisper Large Turbo (800 MB - Best Multilingual, 99+ Languages)",
+        "path": "large-v3-turbo",
+        "device": "auto",
+        "compute_type": "auto"
+    },
+    "omnilingual": {
+        "name": "Omnilingual ASR (328 MB - 1,600+ Languages, Ultra Fast CPU)",
+        "path": "models/omnilingual-asr-ctc",
+        "device": "cpu",
+        "compute_type": "int8"
+    },
+    "hima": {
+        "name": "Hima ASR (550 MB - 12 Indian Languages & Hinglish)",
+        "path": "models/hima-asr-onnx",
+        "device": "auto",
+        "compute_type": "int8"
+    },
+    "nemotron": {
+        "name": "NVIDIA Nemotron 3.5 Streaming (0.6B - Vulkan GPU & Live Preview)",
+        "path": "nemotron",
+        "device": "auto",
+        "compute_type": "q8_0"
+    },
+    "parakeet_v3": {
+        "name": "NVIDIA Parakeet TDT v3 (0.6B - Ultra Fast Streaming, 4.8% WER)",
+        "path": "parakeet_v3",
+        "device": "auto",
+        "compute_type": "q8_0"
     }
 }
 

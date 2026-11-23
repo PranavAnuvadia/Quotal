@@ -24,14 +24,28 @@ import urllib.request
 from version import __version__
 
 REPO = "PranavAnuvadia/Quotal"
-ASSET_NAME = "QuotalSetup.exe"
-API_LATEST = f"https://api.github.com/repos/{REPO}/releases/latest"
-STABLE_DOWNLOAD_URL = f"https://github.com/{REPO}/releases/latest/download/{ASSET_NAME}"
+PATCH_ASSET = "QuotalPatch.zip"
+SETUP_ASSET = "QuotalSetup.exe"
+STABLE_DOWNLOAD_URL = f"https://github.com/{REPO}/releases/latest/download/{PATCH_ASSET}"
 USER_AGENT = "Quotal-Updater/1.0"
+
+
+def _get_api_url() -> str:
+    """Check for local mock server first for testing, otherwise GitHub API."""
+    if os.environ.get("QUOTAL_UPDATE_API"):
+        return os.environ["QUOTAL_UPDATE_API"]
+    try:
+        import socket
+        with socket.create_connection(("127.0.0.1", 49152), timeout=0.15):
+            return "http://127.0.0.1:49152/releases/latest"
+    except Exception:
+        pass
+    return f"https://api.github.com/repos/{REPO}/releases/latest"
+
 
 _status_lock = threading.Lock()
 _status = {"phase": "idle", "current": __version__, "latest": None,
-           "url": None, "notes": "", "downloaded": 0, "total": 0,
+           "url": None, "kind": "patch", "notes": "", "downloaded": 0, "total": 0,
            "path": None, "error": None}
 
 
@@ -55,19 +69,43 @@ def _get_json(url: str, timeout: int = 8):
 def check_update(timeout: int = 8) -> dict:
     """Ask GitHub for the latest release. Never raises; returns a status dict."""
     try:
-        rel = _get_json(API_LATEST, timeout=timeout)
+        api_url = _get_api_url()
+        rel = _get_json(api_url, timeout=timeout)
         tag = rel.get("tag_name", "")
         if not tag:
             return {"status": "error", "current": __version__, "error": "no releases found"}
         latest = ".".join(str(n) for n in _ver_tuple(tag))
         if _ver_tuple(tag) > _ver_tuple(__version__):
-            url = STABLE_DOWNLOAD_URL
-            for a in rel.get("assets", []) or []:
-                if a.get("name") == ASSET_NAME and a.get("browser_download_url"):
+            # Auto-detect whether this is a small update (code patch) or a big update (full runtime)
+            url = None
+            kind = "patch"
+            size_bytes = 0
+            assets = rel.get("assets", []) or []
+            # Check for patch first
+            for a in assets:
+                if a.get("name") == PATCH_ASSET and a.get("browser_download_url"):
                     url = a["browser_download_url"]
+                    size_bytes = a.get("size", 0)
+                    kind = "patch"
                     break
+            # Fall back to full installer if no patch exists
+            if not url:
+                for a in assets:
+                    if a.get("name") == SETUP_ASSET and a.get("browser_download_url"):
+                        url = a["browser_download_url"]
+                        size_bytes = a.get("size", 0)
+                        kind = "setup"
+                        break
+            if not url:
+                url = STABLE_DOWNLOAD_URL
+                kind = "patch"
+
+            update_type = "Minor Update" if kind == "patch" else "Major Update"
+            size_mb = f"{size_bytes / (1024 * 1024):.1f} MB" if size_bytes > 0 else ("Minor Update" if kind == "patch" else "~460 MB")
+
             return {"status": "available", "current": __version__, "latest": latest,
-                    "url": url, "notes": rel.get("body", "") or ""}
+                    "url": url, "kind": kind, "update_type": update_type, "size_str": size_mb,
+                    "notes": rel.get("body", "") or ""}
         return {"status": "current", "current": __version__, "latest": latest}
     except Exception as e:
         return {"status": "error", "current": __version__, "error": str(e)[:160]}
@@ -90,9 +128,11 @@ def get_status() -> dict:
 
 
 def download_update(url: str, dest: str = None, progress_cb=None, timeout: int = 30) -> str:
-    """Download the installer with optional progress callback(downloaded, total)."""
+    """Download the update asset with optional progress callback(downloaded, total)."""
     if not dest:
-        dest = os.path.join(tempfile.gettempdir(), ASSET_NAME)
+        ext = ".zip" if "zip" in url.lower() else ".exe"
+        filename = f"QuotalUpdate{ext}"
+        dest = os.path.join(tempfile.gettempdir(), filename)
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=timeout) as r, open(dest, "wb") as f:
         total = int(r.headers.get("Content-Length") or 0)
@@ -146,6 +186,97 @@ def download_async(on_done=None) -> None:
                 except Exception:
                     pass
     threading.Thread(target=_w, daemon=True).start()
+
+
+def apply_patch_and_restart(patch_zip: str, on_quit) -> bool:
+    """Applies code-only patch zip over install directory and restarts app."""
+    install_dir = os.path.dirname(os.path.abspath(__file__))
+    quotal_exe = os.path.join(install_dir, "Quotal.exe")
+    if not os.path.exists(quotal_exe):
+        quotal_exe = sys.executable
+
+    helper_script = os.path.join(tempfile.gettempdir(), "_quotal_patcher.py")
+    helper_code = '''
+import time, os, zipfile, subprocess, sys, socket
+
+PORT = 48291
+# 1. Wait until old instance quits and kill any lingering Quotal instances
+for _ in range(40):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(("127.0.0.1", PORT))
+        s.close()
+        break
+    except OSError:
+        time.sleep(0.1)
+
+try:
+    flags = 0x08000000 if sys.platform == "win32" else 0
+    subprocess.run(["taskkill", "/F", "/IM", "Quotal.exe"], capture_output=True, creationflags=flags)
+except Exception:
+    pass
+
+time.sleep(0.5)
+
+install_dir = INSTALL_DIR_PLACEHOLDER
+patch_zip = PATCH_ZIP_PLACEHOLDER
+exe_to_launch = EXE_TO_LAUNCH_PLACEHOLDER
+
+# 2. Extract patch files
+try:
+    with zipfile.ZipFile(patch_zip, 'r') as z:
+        z.extractall(install_dir)
+except Exception as e:
+    try:
+        with open(os.path.join(install_dir, "patch_error.log"), "w", encoding="utf-8") as ef:
+            ef.write(str(e))
+    except Exception:
+        pass
+
+# 3. Relaunch Quotal
+time.sleep(0.5)
+try:
+    flags = 0x08000000 if sys.platform == "win32" else 0
+    subprocess.Popen([exe_to_launch], cwd=install_dir, creationflags=flags)
+except Exception as e:
+    try:
+        with open(os.path.join(install_dir, "patch_error.log"), "a", encoding="utf-8") as ef:
+            ef.write("\\nLaunch error: " + str(e))
+    except Exception:
+        pass
+
+# 4. Clean up
+time.sleep(0.5)
+try:
+    if os.path.exists(patch_zip):
+        os.remove(patch_zip)
+    if os.path.exists(__file__):
+        os.remove(__file__)
+except Exception:
+    pass
+'''.strip()
+
+    helper_code = helper_code.replace("INSTALL_DIR_PLACEHOLDER", repr(install_dir))
+    helper_code = helper_code.replace("PATCH_ZIP_PLACEHOLDER", repr(patch_zip))
+    helper_code = helper_code.replace("EXE_TO_LAUNCH_PLACEHOLDER", repr(quotal_exe))
+
+    with open(helper_script, "w", encoding="utf-8") as f:
+        f.write(helper_code)
+
+    try:
+        py_exe = os.path.join(install_dir, ".venv", "Scripts", "python.exe")
+        if not os.path.exists(py_exe):
+            py_exe = sys.executable
+        subprocess.Popen([py_exe, helper_script], creationflags=0x08000000)
+    except Exception as e:
+        print(f"[Updater Error] Failed to launch patcher: {e}")
+        return False
+
+    try:
+        threading.Thread(target=on_quit, daemon=True).start()
+    except Exception:
+        pass
+    return True
 
 
 def launch_installer_and_quit(installer_path: str, on_quit) -> bool:

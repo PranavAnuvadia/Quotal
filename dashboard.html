@@ -276,29 +276,369 @@
   .empty p { color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 38em; margin: 0 auto; }
   .empty .keys { display: flex; gap: 6px; justify-content: center; align-items: center; margin-top: 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
 
-  /* models */
-  .models { border-top: 1px solid var(--line-2); margin-top: 6px; }
-  .model {
-    display: grid; grid-template-columns: 20px 1fr auto; gap: 15px; align-items: start;
-    padding: 16px 4px; border-bottom: 1px solid var(--line); cursor: pointer; width: 100%; text-align: left;
-    border-radius: 6px;
+  /* models toolbar & filters */
+  .models-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
   }
-  .model:hover { background: rgba(236,231,221,.018); }
+  .model-search-bar {
+    flex: 1;
+    min-width: 220px;
+    max-width: 440px;
+  }
+  .model-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 550;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+  }
+  .filter-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: var(--ink);
+  }
+  .filter-chip.active {
+    background: rgba(255, 122, 26, 0.12);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: 0 0 14px rgba(255, 122, 26, 0.2);
+  }
+  .filter-chip#filter-streaming.active {
+    background: rgba(56, 189, 248, 0.12);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.22);
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .filter-chip.active .live-dot {
+    opacity: 1;
+    animation: pvbreathe 1.5s ease-in-out infinite;
+  }
+
+  /* Table Header */
+  .models-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin-top: 10px;
+    border-bottom: 1px solid var(--line-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fainter);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .mhb-metrics {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .mhb-col.speed-col {
+    min-width: 52px;
+    text-align: center;
+  }
+  .mhb-col.size-col {
+    min-width: 72px;
+    text-align: right;
+  }
+
+  /* Section Dividers */
+  .model-section-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fainter);
+    margin: 18px 4px 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .model-section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+    opacity: 0.4;
+  }
+
+  /* models list */
+  .models { margin-top: 2px; }
+  .model {
+    display: grid; grid-template-columns: 20px 1fr auto; gap: 16px; align-items: start;
+    padding: 15px 12px; border-bottom: 1px solid var(--line); cursor: pointer; width: 100%; text-align: left;
+    border-radius: 8px; transition: background .15s, border-color .15s;
+  }
+  .model:hover { background: rgba(255,255,255,.025); }
+  .model.active { background: rgba(255,122,26,.04); border-color: rgba(255,122,26,.2); }
   .model .radio { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--fainter); display: grid; place-items: center; flex-shrink: 0; margin-top: 2px; transition: border-color .15s; }
   .model.active .radio { border-color: var(--accent); }
   .model.active .radio::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: block; }
-  .model .t { font-size: 14.5px; font-weight: 650; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; letter-spacing: -.01em; }
+  .model .t { font-size: 14.5px; font-weight: 650; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; letter-spacing: -.01em; }
   .model .idx { font-family: var(--mono); font-size: 11px; color: var(--fainter); }
   .model .d { color: var(--muted); font-size: 13px; margin-top: 4px; line-height: 1.55; max-width: 52em; }
-  .model .lat-bar { height: 3px; border-radius: 3px; background: rgba(236,231,221,.08); margin-top: 9px; max-width: 220px; overflow: hidden; }
-  .model .lat-bar i { display: block; height: 100%; border-radius: 3px; background: var(--faint); }
-  .model.active .lat-bar i { background: var(--accent); }
-  .model .right { text-align: right; padding-top: 1px; }
+  
+  /* Feature tags */
+  .tag-live {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: var(--mono);
+    background: rgba(56,189,248,.12); color: #38bdf8; border: 1px solid rgba(56,189,248,.3);
+  }
+  .tag-translates {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: var(--mono);
+    background: rgba(168,85,247,.12); color: #c084fc; border: 1px solid rgba(168,85,247,.3);
+  }
+  .tag-match {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: var(--mono);
+    background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.3);
+  }
+  .tag-partial {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; font-family: var(--mono);
+    background: rgba(234,179,8,.12); color: #facc15; border: 1px solid rgba(234,179,8,.3);
+  }
+
+  /* Language Strip inside Model Card */
+  .model-lang-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+  }
+  .lang-strip-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--fainter);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 2px;
+  }
+  .lang-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2.5px 8px;
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.35;
+    transition: transform 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .lang-pill .lang-code {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+  }
+  .lang-pill .lang-grade {
+    font-weight: 800;
+    padding-left: 2px;
+  }
+  .lang-pill.grade-a {
+    background: rgba(34, 197, 94, 0.13);
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  .lang-pill.grade-b {
+    background: rgba(56, 189, 248, 0.13);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+  .lang-pill.grade-c {
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .lang-pill.grade-none {
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--fainter);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+  }
+
+  /* Model Metrics Area (Right Side) */
+  .model-metrics-area {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-top: 4px;
+  }
+  .lang-grades {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .grade-badge {
+    min-width: 34px;
+    height: 25px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .grade-badge.a { background: rgba(34,197,94,.14); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+  .grade-badge.b { background: rgba(56,189,248,.14); color: #38bdf8; border: 1px solid rgba(56,189,248,.3); }
+  .grade-badge.c { background: rgba(255,255,255,.05); color: #94a3b8; border: 1px solid rgba(255,255,255,.1); }
+  .grade-badge.none { background: transparent; color: var(--fainter); border: 1px dashed rgba(255,255,255,.1); }
+
+  /* Cellular Speed Bars */
+  .speed-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 52px;
+  }
+  .cellular-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2.5px;
+    height: 14px;
+  }
+  .cellular-bars i {
+    width: 3px;
+    border-radius: 1.5px;
+    background: rgba(255,255,255,0.15);
+  }
+  .cellular-bars i:nth-child(1) { height: 4px; }
+  .cellular-bars i:nth-child(2) { height: 7px; }
+  .cellular-bars i:nth-child(3) { height: 10px; }
+  .cellular-bars i:nth-child(4) { height: 14px; }
+
+  .cellular-bars[data-bars="1"] i:nth-child(1) { background: #f97316; }
+  .cellular-bars[data-bars="2"] i:nth-child(-n+2) { background: #fbbf24; }
+  .cellular-bars[data-bars="3"] i:nth-child(-n+3) { background: var(--accent); }
+  .cellular-bars[data-bars="4"] i:nth-child(-n+4) { background: #4ade80; }
+
+  .speed-ms {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  /* Size & Status Right Area */
+  .size-status-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 68px;
+    text-align: right;
+  }
   .model .size { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .model .st { display: block; font-size: 12px; font-weight: 650; color: var(--faint); margin-top: 4px; }
+  .model .st { display: block; font-size: 12px; font-weight: 650; color: var(--faint); margin-top: 3px; }
   .model.active .st { color: var(--accent-ink); }
   .note { margin-top: 14px; font-size: 12.5px; color: var(--faint); line-height: 1.6; }
   .note code { font-family: var(--mono); font-size: 11px; color: var(--muted); background: rgba(236,231,221,.06); padding: 1px 6px; border-radius: 5px; }
+
+  /* languages */
+  .lang-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .lang-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(236,231,221,.025);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all .15s ease;
+    user-select: none;
+    text-align: left;
+  }
+  .lang-card:hover {
+    background: rgba(236,231,221,.05);
+    border-color: var(--line-2);
+  }
+  .lang-card.active {
+    background: rgba(255,93,31,.08);
+    border-color: rgba(255,93,31,.45);
+  }
+  .lang-info {
+    min-width: 0;
+  }
+  .lang-name {
+    font-size: 13.5px;
+    font-weight: 650;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lang-native {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lang-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--fainter);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: all .15s ease;
+  }
+  .lang-card.active .lang-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .lang-check svg {
+    display: none;
+    width: 12px;
+    height: 12px;
+    stroke: #fff;
+    stroke-width: 2.5;
+  }
+  .lang-card.active .lang-check svg {
+    display: block;
+  }
 
   /* settings */
   .section-title { font-family: var(--mono); font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--faint); margin: 26px 2px 0; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
@@ -392,11 +732,87 @@
   .pv[data-pv="pulse"] .pv-w i { background: #f4f4f5; box-shadow: none; animation-duration: 1s; }
   .pv[data-pv="wispr"] .pv-t { display: none; }
   .pv[data-pv="wispr"] .pv-w i { animation-duration: .9s; }
+  .pv[data-pv="quotal"] { --pv: #f7f7f9; background: linear-gradient(180deg, #2c2e33, #08090b); border-color: rgba(255,255,255,.3); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); padding: 6px 14px 6px 10px; }
+  .pv[data-pv="aurora"] { background: linear-gradient(180deg, #20222f, #06070b); border-color: rgba(150,100,255,.4); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); padding: 6px 12px; }
+  .pv[data-pv="aurora"] .pv-a { width: 46px; height: 12px; border-radius: 999px; background: linear-gradient(90deg, #46cdff, #5882ff, #9664ff, #ff58c4, #ff9c6c); filter: blur(.4px); animation: pvbreathe 1.8s ease-in-out infinite; }
+  .pv[data-pv="nothing"] { background: #0b0b0d; border-color: rgba(255,255,255,.14); box-shadow: none; padding: 8px 14px; }
+  .pv[data-pv="nothing"] .pv-led { display: grid; grid-template-columns: repeat(9, 1fr); gap: 2.5px; }
+  .pv[data-pv="nothing"] .pv-led i { width: 3px; height: 3px; border-radius: 50%; background: #ff8e26; box-shadow: 0 0 4px #ff8e26; animation: pvblink 1.2s ease-in-out infinite; }
+  .pv[data-pv="nothing"] .pv-led i:nth-child(3n) { animation-delay: .2s; } .pv[data-pv="nothing"] .pv-led i:nth-child(4n) { animation-delay: .4s; }
+  @keyframes pvblink { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+  .led-picker { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .led-picker .sw { width: 22px; height: 22px; border-radius: 50%; background: var(--sw); border: 1.5px solid var(--fainter); cursor: pointer; padding: 0; flex-shrink: 0; }
+  .led-picker .sw.active { border-color: #fff; box-shadow: 0 0 0 2px var(--accent), 0 0 8px var(--sw); }
+  .led-picker .sw-custom { position: relative; overflow: hidden; display: grid; place-items: center; background: conic-gradient(#f55, #ff8e26, #ffeb3b, #36ffa8, #58c4ff, #9664ff, #f55); }
+  .led-picker .sw-custom input { position: absolute; inset: -6px; opacity: 0; cursor: pointer; }
+  .led-picker .sw-custom span { font-size: 14px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px #000; pointer-events: none; }
+  .pv[data-pv="quotal"] .pv-q { font-family: Georgia, serif; font-size: 15px; font-weight: 700; color: #f7f7f9; letter-spacing: -2px; animation: pvbreathe 2.4s ease-in-out infinite; }
+  .pv[data-pv="quotal"] .pv-t { display: none; }
+  .pv[data-pv="quotal"] .pv-hill { width: 44px; height: 14px; border-radius: 0 0 22px 22px; background: radial-gradient(50% 100% at 50% 100%, rgba(255,255,255,.85), transparent 70%); animation: pvbreathe 1.6s ease-in-out infinite; }
+  .pv[data-pv="quotal-light"] { --pv: #1b1c21; background: linear-gradient(180deg, #ffffff, #e5e6ec); border-color: rgba(24,26,34,.3); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); padding: 6px 14px 6px 10px; }
+  .pv[data-pv="quotal-light"] .pv-q { font-family: Georgia, serif; font-size: 15px; font-weight: 700; color: #1b1c21; letter-spacing: -2px; animation: pvbreathe 2.4s ease-in-out infinite; }
+  .pv[data-pv="quotal-light"] .pv-t { display: none; }
+  .pv[data-pv="quotal-light"] .pv-hill { width: 44px; height: 14px; border-radius: 0 0 22px 22px; background: radial-gradient(50% 100% at 50% 100%, rgba(255,122,40,.9), transparent 70%); animation: pvbreathe 1.6s ease-in-out infinite; }
+  .pv-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .pv-row .pv { margin-top: 0; }
+  .theme-seg { display: inline-flex; margin-top: 10px; padding: 3px; gap: 2px; border-radius: 10px; background: rgba(0,0,0,.3); border: 1px solid var(--line); }
+  .theme-seg button { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 6px 16px; border-radius: 7px; border: 0; cursor: pointer; background: transparent; color: var(--muted); }
+  .theme-seg button.active { background: var(--ink); color: #131210; }
+  .pv[data-pv="mercury"] { background: linear-gradient(180deg, #24262e, #06070a); border-color: rgba(255,255,255,.25); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); padding: 7px 16px; }
+  .pv[data-pv="mercury"] .pv-drop { display: flex; align-items: center; gap: 4px; }
+  .pv[data-pv="mercury"] .pv-drop i { width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #9aa3b5 55%, #3a3d47); box-shadow: 0 1px 3px rgba(255,136,44,.55); animation: pvbreathe 1.7s ease-in-out infinite; }
+  .pv[data-pv="mercury"] .pv-drop i:nth-child(2) { animation-delay: .2s; } .pv[data-pv="mercury"] .pv-drop i:nth-child(3) { animation-delay: .4s; }
+  .pv[data-pv="orbit"] { background: linear-gradient(180deg, #181c28, #05060b); border-color: rgba(70,190,255,.35); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); padding: 7px 14px; }
+  .pv[data-pv="orbit"] .pv-core { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #46beff 70%); box-shadow: 0 0 8px #46beff; animation: pvbreathe 2s ease-in-out infinite; }
+  .pv[data-pv="orbit"] .pv-ring { position: relative; width: 26px; height: 14px; border-radius: 50%; border: 1px solid rgba(70,190,255,.5); }
+  .pv[data-pv="orbit"] .pv-ring::after { content: ""; position: absolute; left: 50%; top: -2px; width: 4px; height: 4px; border-radius: 50%; background: #aee8ff; box-shadow: 0 0 5px #46beff; animation: pvspin 1.6s linear infinite; transform-origin: 2px 9px; }
+  .pv[data-pv="scribe"] { background: linear-gradient(180deg, #181924, #08090e); border-color: rgba(255,132,40,.35); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); padding: 7px 14px; gap: 7px; display: inline-flex; align-items: center; }
+  .pv[data-pv="scribe"] .pv-s-orb { width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #ff8428 70%); box-shadow: 0 0 8px #ff8428; animation: pvbreathe 1.8s ease-in-out infinite; flex-shrink: 0; }
+  .pv[data-pv="scribe"] .pv-s-txt { font-family: var(--font); font-size: 11px; color: #ffecd6; opacity: .85; }
+  .pv[data-pv="opus"] { background: linear-gradient(180deg, #181924, #08090e); border-color: rgba(255,126,36,.4); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); padding: 7px 14px; gap: 7px; display: inline-flex; align-items: center; }
+  .pv[data-pv="opus"] .pv-o-glyph { font-weight: 900; font-size: 14px; color: #ff8428; }
+  .pv[data-pv="opus"] .pv-o-txt { font-family: var(--font); font-size: 11px; color: #ffecd6; opacity: .85; }
+  .pv[data-pv="neon"] { background: #06070a; border-color: #a45cff; box-shadow: 0 0 10px rgba(64,222,255,.35); padding: 7px 14px; gap: 7px; display: inline-flex; align-items: center; }
+  .pv[data-pv="neon"] .pv-n-glyph { font-weight: 900; font-size: 13px; color: #40deff; text-shadow: 0 0 6px #40deff; }
+  .pv[data-pv="neon"] .pv-n-txt { font-family: var(--font); font-size: 11px; color: #e8fcff; text-shadow: 0 0 4px #40deff; }
+  .pv[data-pv="flipboard"] { background: #1c1d22; border-color: rgba(255,255,255,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.25); padding: 6px 12px; gap: 6px; display: inline-flex; align-items: center; border-radius: 6px; }
+  .pv[data-pv="flipboard"] .pv-fb-lamp { width: 5px; height: 5px; border-radius: 50%; background: #ff9628; box-shadow: 0 0 6px #ff9628; }
+  .pv[data-pv="flipboard"] .pv-fb-txt { font-family: var(--mono); font-weight: 700; font-size: 11px; color: #ffbe46; letter-spacing: 1px; }
+  .pv[data-pv="receipt"] { background: #f6f4ee; border-color: rgba(40,38,34,.35); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); padding: 6px 12px; gap: 7px; display: inline-flex; align-items: center; border-radius: 99px; }
+  .pv[data-pv="receipt"] .pv-rc-led { width: 5px; height: 5px; border-radius: 50%; background: #ff701e; box-shadow: 0 0 6px #ff701e; }
+  .pv[data-pv="receipt"] .pv-rc-txt { font-family: var(--mono); font-weight: 700; font-size: 11px; color: #1c1b1f; letter-spacing: 1px; }
+  .pv[data-pv="receipt"] .pv-rc-slit { width: 18px; height: 3px; border-radius: 2px; background: #b6b2a8; }
+  .pv[data-pv="face"] { background: #f5f4ef; border-color: rgba(40,38,34,.3); box-shadow: inset 0 1px 0 rgba(255,255,255,.9); padding: 6px 12px; gap: 8px; display: inline-flex; align-items: center; border-radius: 12px; }
+  .pv[data-pv="face"] .pv-fc-eyes { font-family: Georgia, serif; font-size: 13px; font-weight: 900; color: #ff701e; letter-spacing: 2px; }
+  .pv[data-pv="face"] .pv-fc-mouth { width: 12px; height: 6px; border-radius: 6px 6px 0 0; background: #ff701e; }
+  .pv[data-pv="face"] .pv-fc-bubble { font-family: var(--font); font-size: 11px; color: #1c1b1f; background: #fff; padding: 2px 7px; border-radius: 6px; border: 1px solid rgba(0,0,0,.1); }
+  .pv[data-pv="cassette"] { background: #f27022; border-color: rgba(96,36,8,.35); box-shadow: inset 0 1px 0 rgba(255,255,255,.4); padding: 5px 12px; gap: 7px; display: inline-flex; align-items: center; border-radius: 8px; }
+  .pv[data-pv="cassette"] .pv-cas-win { width: 44px; height: 16px; border-radius: 4px; background: #16110f; display: flex; align-items: center; justify-content: space-between; padding: 0 4px; border: 1px solid rgba(0,0,0,.6); }
+  .pv[data-pv="cassette"] .pv-cas-reel { width: 8px; height: 8px; border-radius: 50%; background: #eed; border: 1.5px solid #543828; animation: pvspin 1.8s linear infinite; }
+  .pv[data-pv="cassette"] .pv-cas-txt { font-family: var(--mono); font-weight: 700; font-size: 10px; color: #faeed8; letter-spacing: 1px; }
+  .pv[data-pv="crt"] { background: #80522e; border-color: rgba(58,32,14,.6); box-shadow: inset 0 1px 0 rgba(255,255,255,.3); padding: 5px 10px; gap: 6px; display: inline-flex; align-items: center; border-radius: 7px; }
+  .pv[data-pv="crt"] .pv-crt-scr { width: 36px; height: 18px; border-radius: 4px; background: #060807; border: 1.5px solid #1a1a1e; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: inset 0 0 4px rgba(255,178,64,.3); }
+  .pv[data-pv="crt"] .pv-crt-scr::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0px, rgba(0,0,0,.35) 1px, transparent 1px, transparent 2px); }
+  .pv[data-pv="crt"] .pv-crt-txt { font-family: var(--mono); font-weight: 700; font-size: 8px; color: #ffb240; text-shadow: 0 0 3px #ffb240; }
+  .pv[data-pv="crt"] .pv-crt-knobs { display: flex; flex-direction: column; gap: 3px; }
+  .pv[data-pv="crt"] .pv-crt-knob { width: 5px; height: 5px; border-radius: 50%; background: #2a2622; border: 1px solid #1a1614; }
   .llm-box {
     margin-top: 10px; padding: 9px 8px 9px 12px; background: rgba(0,0,0,.28); border: 1px solid var(--line);
     border-radius: 9px; font-family: var(--mono); font-size: 11.5px; color: var(--muted);
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
+  .dl-left { flex: 1; min-width: 0; }
+  .dl-bar { height: 4px; border-radius: 4px; background: rgba(127,127,127,.28); margin-top: 7px; overflow: hidden; }
+  .dl-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .3s; }
+  .dl-bar i.ind { width: 30% !important; animation: dlslide 1.1s linear infinite; }
+  @keyframes dlslide { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+  .update-banner {
+    display: flex; align-items: center; gap: 12px; margin: 14px 26px 0; padding: 11px 14px;
+    background: rgba(255,122,26,.07); border: 1px solid rgba(255,122,26,.35);
+    border-radius: 12px; font-size: 13px;
+  }
+  .upd-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; animation: pvbreathe 2s ease-in-out infinite; }
+  .upd-actions { display: flex; gap: 8px; flex-shrink: 0; }
   .btn-sm {
     font-family: var(--mono); font-size: 11px; padding: 7px 13px; border-radius: 8px; cursor: pointer;
     background: var(--ink); color: #131210; font-weight: 700; white-space: nowrap; transition: background .15s;
@@ -425,6 +841,23 @@
   }
   .switch.on { background: var(--accent); border-color: var(--accent); }
   .switch.on::after { transform: translateX(16px); background: #fff; }
+
+  .dict-add-row { flex-wrap: wrap; }
+  .dict-input {
+    flex: 1; min-width: 140px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 9px; padding: 9px 12px; color: var(--ink); font: inherit; font-size: 13px;
+    outline: none; user-select: text;
+  }
+  .dict-input::placeholder { color: var(--fainter); }
+  .dict-input:focus { border-color: var(--accent); }
+  .dict-arrow { color: var(--faint); font-weight: 700; }
+  .dict-empty { padding: 16px 2px; color: var(--faint); font-size: 13px; }
+  .dict-spoken { font-weight: 600; font-size: 13.5px; letter-spacing: -.01em; }
+  .dict-spoken .dict-to { color: var(--faint); font-weight: 400; margin: 0 8px; }
+  .dict-written { color: var(--accent-ink, var(--ink)); font-weight: 650; }
+  .dict-del { background: transparent; border: 1px solid var(--line); color: var(--muted); padding: 7px 10px; }
+  .dict-del:hover { background: rgba(224,122,122,.12); border-color: rgba(224,122,122,.5); color: #f0a8a8; }
+  .dict-del svg { width: 13px; height: 13px; display: block; }
 
   .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 12px; }
   .step { border-top: 1px solid var(--line-2); padding-top: 11px; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
@@ -607,13 +1040,114 @@
   html[data-theme="light"] .switch.on::after {
     background: #ffffff;
   }
+  /* Light mode: pill previews */
   html[data-theme="light"] .pv {
-    background: linear-gradient(180deg, #ffffff, #f4f1ea);
-    border-color: rgba(28,26,23,.12);
-    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    border-color: rgba(28,26,23,.14);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
   }
   html[data-theme="light"] .pv .pv-t {
     color: var(--ink);
+  }
+
+  /* Bloom: clean frosted light capsule with high-contrast text and vibrant orb */
+  html[data-theme="light"] .pv[data-pv="bloom"] {
+    background: linear-gradient(180deg, #ffffff, #f2efe7);
+    border: 1px solid rgba(28,26,23,.14);
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  html[data-theme="light"] .pv[data-pv="bloom"] .pv-t {
+    color: #1c1a17;
+    font-weight: 600;
+  }
+
+  /* Wispr: sleek matte-black capsule floating on light surface with crisp glowing voice bars */
+  html[data-theme="light"] .pv[data-pv="wispr"] {
+    background: #090a0d;
+    border: 1px solid rgba(0,0,0,.35);
+    box-shadow: 0 4px 14px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.1);
+  }
+  html[data-theme="light"] .pv[data-pv="wispr"] .pv-w i {
+    background: #ffffff;
+    box-shadow: 0 0 2px rgba(255,255,255,.6);
+  }
+
+  /* Quotal Dark: deep obsidian glass with silver quote marks and luminous hill */
+  html[data-theme="light"] .pv[data-pv="quotal"] {
+    background: linear-gradient(180deg, #27292f, #090a0d);
+    border: 1px solid rgba(0,0,0,.3);
+    box-shadow: 0 4px 14px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+  html[data-theme="light"] .pv[data-pv="quotal"] .pv-q {
+    color: #f7f7f9;
+  }
+  html[data-theme="light"] .pv[data-pv="quotal"] .pv-hill {
+    background: radial-gradient(50% 100% at 50% 100%, rgba(255,255,255,.9), transparent 70%);
+  }
+
+  /* Quotal Light: frosted porcelain glass with crisp dark quote marks and warm orange glowing hill */
+  html[data-theme="light"] .pv[data-pv="quotal-light"] {
+    background: linear-gradient(180deg, #ffffff, #e8ebf2);
+    border: 1px solid rgba(24,26,34,.22);
+    box-shadow: 0 4px 12px rgba(0,0,0,.08), inset 0 1px 0 #ffffff;
+  }
+  html[data-theme="light"] .pv[data-pv="quotal-light"] .pv-q {
+    color: #14151a;
+  }
+  html[data-theme="light"] .pv[data-pv="quotal-light"] .pv-hill {
+    background: radial-gradient(50% 100% at 50% 100%, #ff6b1a, rgba(255,107,26,.25) 68%, transparent 100%);
+  }
+
+  /* Quotal theme switcher segment: iOS-style crisp light segmented button */
+  html[data-theme="light"] .theme-seg {
+    background: #e6e2d8;
+    border: 1px solid rgba(28,26,23,.12);
+  }
+  html[data-theme="light"] .theme-seg button {
+    color: #635d55;
+  }
+  html[data-theme="light"] .theme-seg button:hover {
+    color: #1c1a17;
+  }
+  html[data-theme="light"] .theme-seg button.active {
+    background: #ffffff;
+    color: #1c1a17;
+    box-shadow: 0 1px 3px rgba(0,0,0,.14);
+  }
+
+  /* Aurora: smoked glass capsule with radiant rainbow ribbon */
+  html[data-theme="light"] .pv[data-pv="aurora"] {
+    background: linear-gradient(180deg, #1d1f2c, #07080d);
+    border: 1px solid rgba(130,80,255,.4);
+    box-shadow: 0 4px 14px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.12);
+  }
+
+  /* Nothing: matte-black dot-matrix chassis with vivid LED dots */
+  html[data-theme="light"] .pv[data-pv="nothing"] {
+    background: #090a0d;
+    border: 1px solid rgba(0,0,0,.35);
+    box-shadow: 0 4px 14px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  html[data-theme="light"] .led-picker .sw {
+    border: 1.5px solid rgba(28,26,23,.2);
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  }
+  html[data-theme="light"] .led-picker .sw.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px var(--accent), 0 2px 6px rgba(0,0,0,.25);
+  }
+
+  /* Mercury: sleek liquid-chrome chassis with metallic droplets */
+  html[data-theme="light"] .pv[data-pv="mercury"] {
+    background: linear-gradient(180deg, #1e2028, #07080b);
+    border: 1px solid rgba(0,0,0,.32);
+    box-shadow: 0 4px 14px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.14);
+  }
+
+  /* Orbit: deep space chassis with glowing neon cyan core and satellite orbit */
+  html[data-theme="light"] .pv[data-pv="orbit"] {
+    background: linear-gradient(180deg, #10141f, #040508);
+    border: 1px solid rgba(70,190,255,.4);
+    box-shadow: 0 4px 14px rgba(0,0,0,.16), 0 0 8px rgba(70,190,255,.2);
   }
   html[data-theme="light"] .llm-box {
     background: rgba(28,26,23,.03); border-color: var(--line);
@@ -727,6 +1261,14 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2.5"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
         <span>Models</span>
       </div>
+      <div class="nav-item" data-view="languages" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 2.5a15.3 15.3 0 0 1 4 9.5 15.3 15.3 0 0 1-4 9.5 15.3 15.3 0 0 1-4-9.5 15.3 15.3 0 0 1 4-9.5z"/><path d="M2.5 12h19"/></svg>
+        <span>Languages</span><span class="count" id="nav-lang-count"></span>
+      </div>
+      <div class="nav-item" data-view="dictionary" tabindex="0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span>Dictionary</span><span class="count" id="nav-dict-count"></span>
+      </div>
       <div class="nav-item" data-view="settings" tabindex="0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2.2"/><circle cx="10" cy="16" r="2.2"/></svg>
         <span>Settings</span>
@@ -750,6 +1292,7 @@
   </aside>
 
   <main>
+    <div class="update-banner" id="update-banner" style="display:none"></div>
     <div class="scroll" id="scroll">
       <!-- HISTORY -->
       <section class="view active" id="view-home">
@@ -799,8 +1342,82 @@
           <h1>Pick your <em>ears.</em></h1>
           <div class="lead">Every model runs <b>entirely on this PC</b>. Nothing you say ever leaves the room. Switching takes a few seconds.</div>
         </div>
+
+        <div class="models-toolbar">
+          <label class="search model-search-bar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="model-search" placeholder="Search models or languages…" spellcheck="false">
+          </label>
+          <div class="model-filters">
+            <button class="filter-chip" id="filter-streaming" type="button" title="Show only real-time streaming models">
+              <span class="live-dot"></span>
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4.93 4.93a10 10 0 0 0 0 14.14M7.76 7.76a6 6 0 0 0 0 8.48M12 12h.01"/></svg>
+              Live preview
+            </button>
+            <button class="filter-chip" id="filter-translates" type="button" title="Show models that can translate foreign speech to English">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+              Translates
+            </button>
+          </div>
+        </div>
+
+        <div class="models-header-bar" id="models-header-bar">
+          <div class="mhb-title">Speech Model</div>
+          <div class="mhb-metrics">
+            <span class="mhb-col speed-col">SPEED</span>
+            <span class="mhb-col size-col">SIZE</span>
+          </div>
+        </div>
+
         <div class="models" id="models"></div>
-        <p class="note">Downloaded once, kept locally. If you dictate in Hindi-English mix, Hinglish Swift is worth it. For quiet rooms and plain English, Base is honestly enough.</p>
+        <p class="note">Downloaded once, kept locally. Models with <b>Live preview</b> stream real-time words to your screen while you speak. Models with <b>Translates</b> automatically translate foreign speech to English.</p>
+      </section>
+
+      <!-- LANGUAGES -->
+      <section class="view" id="view-languages">
+        <div class="head">
+          <div class="eyebrow-row"><div class="eyebrow">Multilingual dictation</div></div>
+          <h1>Speak in your <em>tongue.</em></h1>
+          <div class="lead">Select the languages you speak. When multiple languages are checked, Quotal <b>auto-detects between them</b> with near-zero latency.</div>
+        </div>
+
+        <div class="toolbar" style="margin-bottom:18px">
+          <label class="search" style="max-width:100%">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="lang-search" placeholder="Search 100+ languages (e.g. Hindi, Marathi, Spanish)…" spellcheck="false">
+          </label>
+        </div>
+
+        <div class="section-title" id="lang-quick-title">Quick picks</div>
+        <div class="lang-grid" id="lang-quick-grid"></div>
+
+        <div class="section-title" id="lang-all-title">All languages <span class="count" id="lang-all-count"></span></div>
+        <div class="lang-grid" id="lang-all-grid"></div>
+
+        <p class="note">Tip: Selecting only the languages you actually speak (e.g. English + Hindi + Marathi) keeps recognition lightning-fast and avoids false detections.</p>
+      </section>
+
+      <!-- DICTIONARY -->
+      <section class="view" id="view-dictionary">
+        <div class="head">
+          <div class="eyebrow-row"><div class="eyebrow">Personal dictionary</div></div>
+          <h1>Teach it <em>names.</em></h1>
+          <div class="lead">Quotal keeps mishearing a name or term? Add it once as <b>heard&nbsp;as → always&nbsp;write</b>. Applies instantly, no restart.</div>
+        </div>
+
+        <div class="section-title">Add a word</div>
+        <div class="rows">
+          <div class="row dict-add-row">
+            <input id="dict-heard" class="dict-input" placeholder="Heard as — e.g. badi" spellcheck="false" autocomplete="off">
+            <span class="dict-arrow">→</span>
+            <input id="dict-written" class="dict-input" placeholder="Always write — e.g. buddy" spellcheck="false" autocomplete="off">
+            <button class="btn-sm" id="dict-add-btn">Add</button>
+          </div>
+        </div>
+
+        <div class="section-title">Your words <span class="count" id="dict-count"></span></div>
+        <div class="rows" id="dict-list"></div>
+        <p class="note">Matching is case-insensitive and the longest phrase wins, so <code>new york</code> beats <code>york</code>. Stored in <code>dictionary.json</code> next to the app.</p>
       </section>
 
       <!-- SETTINGS -->
@@ -845,6 +1462,14 @@
           <div class="row">
             <div class="info"><div class="t">Sound effects</div><div class="d">A soft chime when recording starts, another when text lands.</div></div>
             <div class="switch" data-key="audio_chimes" tabindex="0" role="switch"></div>
+          </div>
+          <div class="row">
+            <div class="info"><div class="t">Compute device</div><div class="d" id="device-status">Auto uses the GPU when one exists, CPU otherwise.</div><div id="device-dl"></div></div>
+            <div class="theme-toggle-group" id="device-seg">
+              <button class="theme-opt" data-device="auto">Auto</button>
+              <button class="theme-opt" data-device="cuda">GPU</button>
+              <button class="theme-opt" data-device="cpu">CPU</button>
+            </div>
           </div>
         </div>
 
@@ -913,9 +1538,197 @@
           <div class="pillopt" data-pill="wispr" tabindex="0">
             <div class="radio"></div>
             <div>
-              <div class="enh-title">Wispr <span class="tag">pyside6 · flow</span></div>
-              <div class="enh-desc">Wispr Flow pill — small black capsule, dim dots at rest that bloom into voice bars while recording, spinner while enhancing. Runs its own mic via PySide6.</div>
+              <div class="enh-title">Wispr <span class="tag">pyside6 · minimal</span></div>
+              <div class="enh-desc">Small black capsule, dim dots at rest that bloom into voice bars while recording, spinner while enhancing. Runs its own mic via PySide6.</div>
               <div class="pv" data-pv="wispr"><span class="pv-w"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="quotal" data-themes="quotal,quotal-light" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Quotal <span class="tag">pyside6 · brand</span></div>
+              <div class="enh-desc">Quotal brand pill — quote marks from the icon on glass. Marks fade as a voice hill swells; a light orbits the edge while enhancing. Pick dark or light glass below. Runs its own mic via PySide6.</div>
+              <div class="pv-row">
+                <div class="pv" data-pv="quotal"><span class="pv-q">❝</span><span class="pv-hill"></span></div>
+                <div class="pv" data-pv="quotal-light"><span class="pv-q">❝</span><span class="pv-hill"></span></div>
+              </div>
+              <div class="theme-seg" id="quotal-theme-seg">
+                <button data-qtheme="quotal" title="Dark glass">Dark</button>
+                <button data-qtheme="quotal-light" title="Light glass · orange accent">Light</button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="aurora" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Aurora <span class="tag">pyside6 · glow</span></div>
+              <div class="enh-desc">Aurora glow pill — smoked glass with drifting rainbow light. Swells and swirls with your voice, ribbon waves while recording, rainbow ring while enhancing. Runs its own mic via PySide6.</div>
+              <div class="pv" data-pv="aurora"><span class="pv-a"></span></div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="nothing" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Nothing <span class="tag">pyside6 · led</span></div>
+              <div class="enh-desc">Dot-matrix pill — matte-black capsule with a recessed LED lattice. Voice columns with peak-hold dots while recording, rim comet while enhancing. Runs its own mic via PySide6.</div>
+              <div class="pv" data-pv="nothing"><span class="pv-led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+              <div class="led-picker" id="led-picker">
+                <button class="sw" data-accent="white" style="--sw:#E2E6F0" title="White"></button>
+                <button class="sw" data-accent="amber" style="--sw:#FF8E26" title="Amber"></button>
+                <button class="sw" data-accent="red" style="--sw:#FF3636" title="Red"></button>
+                <button class="sw" data-accent="mint" style="--sw:#36FFA8" title="Mint"></button>
+                <button class="sw" data-accent="ice" style="--sw:#58C4FF" title="Ice"></button>
+                <label class="sw sw-custom" title="Custom color"><input type="color" id="led-custom" value="#ffffff"><span>+</span></label>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="mercury" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Mercury <span class="tag">pyside6 · chrome</span></div>
+              <div class="enh-desc">Liquid-chrome pill — seven mercury droplets that stretch, bridge and fuse as your voice rises, with a studio reflection and accent glow. Molten loop while enhancing. Runs its own mic via PySide6.</div>
+              <div class="pv" data-pv="mercury"><span class="pv-drop"><i></i><i></i><i></i></span></div>
+              <div class="led-picker" id="mercury-picker">
+                <button class="sw" data-accent="orange" style="--sw:#FF882C" title="Orange"></button>
+                <button class="sw" data-accent="ice" style="--sw:#60BEFF" title="Ice"></button>
+                <button class="sw" data-accent="violet" style="--sw:#A470FF" title="Violet"></button>
+                <button class="sw" data-accent="mint" style="--sw:#46EBAA" title="Mint"></button>
+                <button class="sw" data-accent="mono" style="--sw:#CDD2DE" title="Mono"></button>
+                <label class="sw sw-custom" title="Custom color"><input type="color" id="mercury-custom" value="#ff882c"><span>+</span></label>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="orbit" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Orbit <span class="tag">pyside6 · system</span></div>
+              <div class="enh-desc">Orbital-system pill — glowing core with eight satellites on tilted orbits and comet tails. Orbits breathe with your voice; everything locks onto one fast ring while enhancing. Runs its own mic via PySide6.</div>
+              <div class="pv" data-pv="orbit"><span class="pv-core"></span><span class="pv-ring"></span></div>
+              <div class="led-picker" id="orbit-picker">
+                <button class="sw" data-accent="ion" style="--sw:#46BEFF" title="Ion"></button>
+                <button class="sw" data-accent="solar" style="--sw:#FF8A2C" title="Solar"></button>
+                <button class="sw" data-accent="plasma" style="--sw:#A86EFF" title="Plasma"></button>
+                <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
+                <button class="sw" data-accent="mono" style="--sw:#C8CEDC" title="Mono"></button>
+              </div>
+            </div>
+          </div>
+                    <div class="pillopt" data-pill="opus" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Opus <span class="tag">pyside6 · live transcript</span></div>
+              <div class="enh-desc">Dynamic island dark-glass caption card with hanging quote marks and audio rail — live streaming transcript while listening!</div>
+              <div class="pv" data-pv="opus"><span class="pv-o-glyph">“</span><span class="pv-o-txt">Live transcript...</span></div>
+              <div class="led-picker" id="opus-picker">
+                <button class="sw" data-accent="orange" style="--sw:#FF8428" title="Orange"></button>
+                <button class="sw" data-accent="ice" style="--sw:#46BEFF" title="Ice"></button>
+                <button class="sw" data-accent="violet" style="--sw:#A86EFF" title="Violet"></button>
+                <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
+                <button class="sw" data-accent="rose" style="--sw:#FF548C" title="Rose"></button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="neon" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Neon <span class="tag">pyside6 · live transcript</span></div>
+              <div class="enh-desc">Dark glass card with glowing neon tube border, igniting word sprites, and loudness voice line.</div>
+              <div class="pv" data-pv="neon"><span class="pv-n-glyph">“</span><span class="pv-n-txt">LIVE NEON GLOW...</span></div>
+              <div class="led-picker" id="neon-picker">
+                <button class="sw" data-theme="sunset" style="--sw:#FF9240" title="Sunset"></button>
+                <button class="sw" data-theme="cyber" style="--sw:#40DEFF" title="Cyber"></button>
+                <button class="sw" data-theme="toxic" style="--sw:#A6FF54" title="Toxic"></button>
+                <button class="sw" data-theme="rose" style="--sw:#FF68A0" title="Rose"></button>
+                <button class="sw" data-theme="ice" style="--sw:#96C8FF" title="Ice"></button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="flipboard" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Flipboard <span class="tag">pyside6 · live transcript</span></div>
+              <div class="enh-desc">Mechanical airport departures split-flap board in a brushed metal capsule with VU meter lamps.</div>
+              <div class="pv" data-pv="flipboard"><span class="pv-fb-lamp"></span><span class="pv-fb-txt">QUOTAL DEPARTURES</span></div>
+              <div class="led-picker" id="flipboard-picker">
+                <button class="sw" data-style="classic" style="--sw:#F8F4EA" title="Classic"></button>
+                <button class="sw" data-style="amber" style="--sw:#FFBE46" title="Amber"></button>
+                <button class="sw" data-style="mint" style="--sw:#A0FFD0" title="Mint"></button>
+                <button class="sw" data-style="ice" style="--sw:#CEE6FF" title="Ice"></button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="receipt" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Receipt <span class="tag">pyside6 · live transcript</span></div>
+              <div class="enh-desc">Thermal printer in a capsule. Live transcript prints out of the slit on fluttering receipt paper and tears off when done!</div>
+              <div class="pv" data-pv="receipt"><span class="pv-rc-led"></span><span class="pv-rc-txt">QUOTAL</span><span class="pv-rc-slit"></span></div>
+              <div class="led-picker" id="receipt-picker">
+                <button class="sw" data-body="cream" style="--sw:#F6F4EE" title="Cream"></button>
+                <button class="sw" data-body="graphite" style="--sw:#24252A" title="Graphite"></button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="face" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Face <span class="tag">pyside6 · animated companion</span></div>
+              <div class="enh-desc">Living Quotal character tile. Quote marks for eyes that look at your text, an animated mound mouth that breathes with your voice, and a speech bubble typewriter.</div>
+              <div class="pv" data-pv="face"><span class="pv-fc-eyes">“”</span><span class="pv-fc-mouth"></span><span class="pv-fc-bubble">Talking...</span></div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="cassette" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Cassette <span class="tag">pyside6 · tape deck</span></div>
+              <div class="enh-desc">Vintage tape deck in a capsule. Words record straight onto magnetic tape while reels turn and record head glows, rewinding fast on finish!</div>
+              <div class="pv" data-pv="cassette">
+                <span class="pv-cas-win"><span class="pv-cas-reel"></span><span class="pv-cas-reel"></span></span>
+                <span class="pv-cas-txt">SIDE A</span>
+              </div>
+              <div class="led-picker" id="cassette-picker">
+                <button class="sw" data-body="orange" style="--sw:#FF9C4C" title="Orange"></button>
+                <button class="sw" data-body="black" style="--sw:#26272C" title="Black"></button>
+                <button class="sw" data-body="cream" style="--sw:#F8F6F0" title="Cream"></button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="crt" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">CRT <span class="tag">pyside6 · 1970s television</span></div>
+              <div class="enh-desc">Vintage phosphor screen in a retro wood TV. Words glow onto phosphor glass with RGB split, blinking cursor, live oscilloscope trace, VU meter grille, and rabbit ears!</div>
+              <div class="pv" data-pv="crt">
+                <span class="pv-crt-scr"><span class="pv-crt-txt">&gt; REC</span></span>
+                <span class="pv-crt-knobs"><span class="pv-crt-knob"></span><span class="pv-crt-knob"></span></span>
+              </div>
+              <div class="led-picker" id="crt-case-picker" style="margin-top:6px">
+                <span style="font-size:10px;color:var(--muted);margin-right:4px">Case:</span>
+                <button class="sw" data-case="walnut" style="--sw:#80522E" title="Walnut"></button>
+                <button class="sw" data-case="mint" style="--sw:#78BEAA" title="Mint"></button>
+                <button class="sw" data-case="graphite" style="--sw:#3A3C42" title="Graphite"></button>
+              </div>
+              <div class="led-picker" id="crt-phosphor-picker" style="margin-top:4px">
+                <span style="font-size:10px;color:var(--muted);margin-right:4px">Phosphor:</span>
+                <button class="sw" data-phosphor="amber" style="--sw:#FFB240" title="Amber"></button>
+                <button class="sw" data-phosphor="green" style="--sw:#76FF96" title="Green"></button>
+                <button class="sw" data-phosphor="white" style="--sw:#CEE2FF" title="White"></button>
+              </div>
+            </div>
+          </div>
+          <div class="pillopt" data-pill="scribe" tabindex="0">
+            <div class="radio"></div>
+            <div>
+              <div class="enh-title">Scribe <span class="tag">pyside6 · live captions</span></div>
+              <div class="enh-desc">Dynamic island caption capsule — live streaming words ease in as you speak with breathing orb and blinking caret. Shimmer sweeps during AI polish. Best with Nemotron Streaming!</div>
+              <div class="pv" data-pv="scribe"><span class="pv-s-orb"></span><span class="pv-s-txt">Live transcript...</span></div>
+              <div class="led-picker" id="scribe-picker">
+                <button class="sw" data-accent="orange" style="--sw:#FF8428" title="Orange"></button>
+                <button class="sw" data-accent="ice" style="--sw:#46BEFF" title="Ice"></button>
+                <button class="sw" data-accent="violet" style="--sw:#A86EFF" title="Violet"></button>
+                <button class="sw" data-accent="mint" style="--sw:#3CEBA5" title="Mint"></button>
+                <button class="sw" data-accent="rose" style="--sw:#FF548C" title="Rose"></button>
+              </div>
             </div>
           </div>
           <!--
@@ -999,10 +1812,12 @@ const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" s
 const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
 const ICON_MOON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 
-let state = { history: [], mtime: 0, settings: {}, models: [], autostart: false, llm_status: {} };
+let state = { history: [], mtime: 0, settings: {}, models: [], autostart: false, llm_status: {}, dictionary: {} };
 let api = null;
 let lastList = [], selIdx = -1;
 let selectMode = false;
+let lastModelsJson = '';
+let lastGpuJson = '';
 let selectedEpochs = new Set();
 let currentTheme = 'dark';
 try { currentTheme = localStorage.getItem('quotal_theme') || 'dark'; } catch(e) {}
@@ -1026,7 +1841,7 @@ function applyTheme(theme, notify = false) {
     quickBtn.title = theme === 'light' ? 'Switch to Dark mode' : 'Switch to Light mode';
   }
 
-  document.querySelectorAll('.theme-opt').forEach(btn => {
+  document.querySelectorAll('.theme-opt[data-theme]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.theme === theme);
   });
 
@@ -1296,8 +2111,11 @@ function selectEntry(i, scroll) {
 }
 
 // ---------- Render: models ----------
-const MODEL_IDX = { base: '01', hinglish_swift: '02', small: '03' };
-const MODEL_LAT = { base: 300, hinglish_swift: 250, small: 800 };
+const MODEL_IDX = { base: '01', hinglish_swift: '02', small: '03', turbo: '04', omnilingual: '05', hima: '06', nemotron: '07', parakeet_v3: '08' };
+
+let modelSearchQuery = '';
+let filterLivePreview = false;
+let filterTranslates = false;
 
 function setEngine(m) {
   if (!m) return;
@@ -1305,67 +2123,685 @@ function setEngine(m) {
   $('#engine-sub').textContent = 'on-device · ' + (m.device || 'GPU').toLowerCase() + ' · ' + (m.size || '').toLowerCase();
 }
 
+function getModelGrade(m, code) {
+  if (m.languages && m.languages[code]) return m.languages[code];
+  if (code === 'en') {
+    if (m.key === 'parakeet_v3' || m.key === 'turbo') return 'A+';
+    if (m.key === 'nemotron' || m.key === 'small') return 'A';
+    if (m.key === 'base' || m.key === 'hinglish_swift' || m.key === 'hima') return 'A-';
+    return 'B+';
+  }
+  if (code === 'hi') {
+    if (m.key === 'hima') return 'A+';
+    if (m.key === 'hinglish_swift' || m.key === 'turbo') return 'A';
+    if (m.key === 'omnilingual') return 'A-';
+    if (m.key === 'small') return 'B+';
+    if (m.key === 'nemotron') return 'B-';
+    if (m.key === 'base') return 'C';
+    return '—';
+  }
+  // Multilingual defaults
+  if (m.key === 'turbo') return 'A';
+  if (m.key === 'omnilingual') return 'B+';
+  if (m.key === 'small') return 'B';
+  if (m.key === 'base') return 'C';
+  return '—';
+}
+
+function setupModelFilterListeners() {
+  const sInput = $('#model-search');
+  if (sInput && !sInput._bound) {
+    sInput._bound = true;
+    sInput.addEventListener('input', e => {
+      modelSearchQuery = (e.target.value || '').trim();
+      renderModels();
+    });
+  }
+  const btnStream = $('#filter-streaming');
+  if (btnStream && !btnStream._bound) {
+    btnStream._bound = true;
+    btnStream.addEventListener('click', () => {
+      filterLivePreview = !filterLivePreview;
+      btnStream.classList.toggle('active', filterLivePreview);
+      renderModels();
+    });
+  }
+  const btnTrans = $('#filter-translates');
+  if (btnTrans && !btnTrans._bound) {
+    btnTrans._bound = true;
+    btnTrans.addEventListener('click', () => {
+      filterTranslates = !filterTranslates;
+      btnTrans.classList.toggle('active', filterTranslates);
+      renderModels();
+    });
+  }
+}
+
 function renderModels() {
+  setupModelFilterListeners();
   const active = state.settings.model_key || 'base';
   const root = $('#models'); root.textContent = '';
-  const maxLat = Math.max.apply(null, state.models.map(m => MODEL_LAT[m.key] || 500).concat([800]));
-  for (const m of state.models) {
-    const el = document.createElement('div');
-    el.className = 'model' + (m.key === active ? ' active' : '');
-    el.setAttribute('tabindex', '0');
-    el.setAttribute('role', 'button');
-    const left = document.createElement('div'); left.className = 'radio';
-    const mid = document.createElement('div');
-    const t = document.createElement('div'); t.className = 't';
-    const idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = MODEL_IDX[m.key] || '--';
-    const nm = document.createElement('span'); nm.textContent = m.title;
-    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = m.tag;
-    t.append(idx, nm, tag);
-    const d = document.createElement('div'); d.className = 'd'; d.textContent = m.desc;
-    mid.append(t, d);
-    const lat = MODEL_LAT[m.key] || 400;
-    const bar = document.createElement('div'); bar.className = 'lat-bar'; bar.title = 'Relative latency';
-    const fill = document.createElement('i'); fill.style.width = Math.max(12, Math.round(lat / maxLat * 100)) + '%';
-    bar.appendChild(fill); mid.appendChild(bar);
-    const right = document.createElement('div'); right.className = 'right';
-    const size = document.createElement('span'); size.className = 'size'; size.textContent = m.size + ' · ' + m.device;
-    const st = document.createElement('span'); st.className = 'st'; st.textContent = m.key === active ? 'Active' : 'Select';
-    right.append(size, st);
-    el.append(left, mid, right);
-    const pick = async () => {
-      if (state.settings.model_key === m.key) return;
-      state.settings.model_key = m.key;
-      document.querySelectorAll('.model').forEach(x => {
-        const on = x === el;
-        x.classList.toggle('active', on);
-        x.querySelector('.st').textContent = on ? 'Active' : 'Select';
-      });
-      setEngine(m);
-      await api.select_model(m.key);
-      toast('Switching to ' + m.title + '…');
-    };
-    el.onclick = pick;
-    el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } };
-    root.appendChild(el);
+
+  const activeLangs = (state.settings && state.settings.selected_languages && state.settings.selected_languages.length)
+    ? state.settings.selected_languages
+    : ['en'];
+
+  // Table header on right only needs SPEED and SIZE
+  const mhbMetrics = $('#mhb-metrics');
+  if (mhbMetrics) {
+    mhbMetrics.innerHTML = `<span class="mhb-col speed-col">SPEED</span><span class="mhb-col size-col">SIZE</span>`;
   }
-  setEngine(state.models.find(m => m.key === active));
+
+  // Filter models
+  const allModels = state.models || [];
+  const filtered = allModels.filter(m => {
+    if (filterLivePreview && !m.streaming) return false;
+    if (filterTranslates && !m.translates) return false;
+    if (modelSearchQuery) {
+      const q = modelSearchQuery.toLowerCase();
+      const matchName = (m.title || '').toLowerCase().includes(q);
+      const matchDesc = (m.desc || '').toLowerCase().includes(q);
+      const matchTag = (m.tag || '').toLowerCase().includes(q);
+      return matchName || matchDesc || matchTag;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.style.padding = '40px 10px';
+    empty.innerHTML = `<div class="big">No matching models found.</div><p>Try clearing your search query or filters.</p>`;
+    root.appendChild(empty);
+    return;
+  }
+
+  // Partition into sections
+  const onComputer = [];
+  const forLangs = [];
+  const otherModels = [];
+
+  for (const m of filtered) {
+    if (m.downloaded || m.bundled) {
+      onComputer.push(m);
+    } else {
+      const supportsActive = activeLangs.every(l => {
+        const g = getModelGrade(m, l);
+        return g && g !== '—';
+      });
+      if (supportsActive) forLangs.push(m);
+      else otherModels.push(m);
+    }
+  }
+
+  function appendSection(title, list) {
+    if (!list.length) return;
+    if (title) {
+      const sTitle = document.createElement('div');
+      sTitle.className = 'model-section-title';
+      sTitle.textContent = title;
+      root.appendChild(sTitle);
+    }
+    for (const m of list) {
+      root.appendChild(createModelElement(m, active, activeLangs));
+    }
+  }
+
+  if (modelSearchQuery || filterLivePreview || filterTranslates) {
+    appendSection(`Matching Models (${filtered.length})`, filtered);
+  } else {
+    appendSection('On This PC', onComputer);
+    appendSection('For Your Languages', forLangs);
+    appendSection('More Models', otherModels);
+  }
+
+  setEngine(allModels.find(m => m.key === active));
+  renderModelStatus();
+}
+
+function createModelElement(m, active, activeLangs) {
+  const el = document.createElement('div');
+  el.className = 'model' + (m.key === active ? ' active' : '');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('role', 'button');
+
+  const left = document.createElement('div'); left.className = 'radio';
+  const mid = document.createElement('div'); mid.className = 'mid';
+  const t = document.createElement('div'); t.className = 't';
+  const idx = document.createElement('span'); idx.className = 'idx'; idx.textContent = MODEL_IDX[m.key] || '--';
+  const nm = document.createElement('span'); nm.textContent = m.title;
+  t.append(idx, nm);
+
+  if (m.streaming) {
+    const liveTag = document.createElement('span');
+    liveTag.className = 'tag-live';
+    liveTag.innerHTML = `<span class="live-dot"></span> Live preview`;
+    t.appendChild(liveTag);
+  }
+  if (m.translates) {
+    const transTag = document.createElement('span');
+    transTag.className = 'tag-translates';
+    transTag.innerHTML = `文A Translates`;
+    t.appendChild(transTag);
+  }
+  if (m.tag && !m.streaming && !m.translates) {
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = m.tag;
+    t.appendChild(tag);
+  }
+
+  // Language match summary tag
+  if (activeLangs.length > 1) {
+    let supportedCount = 0;
+    for (const l of activeLangs) {
+      const g = getModelGrade(m, l);
+      if (g && g !== '—') supportedCount++;
+    }
+    const matchTag = document.createElement('span');
+    if (supportedCount === activeLangs.length) {
+      matchTag.className = 'tag-match';
+      matchTag.textContent = `✓ All ${activeLangs.length} Langs`;
+    } else if (supportedCount > 0) {
+      matchTag.className = 'tag-partial';
+      matchTag.textContent = `${supportedCount}/${activeLangs.length} Langs`;
+    } else {
+      matchTag.className = 'tag-partial';
+      matchTag.style.cssText = 'color:var(--faint);border-color:var(--line);background:transparent;';
+      matchTag.textContent = `0/${activeLangs.length} Langs`;
+    }
+    t.appendChild(matchTag);
+  }
+
+  const d = document.createElement('div'); d.className = 'd'; d.textContent = m.desc;
+  mid.append(t, d);
+
+  // Dedicated Language Capability Strip inside card (scalable to any number of languages)
+  const langStrip = document.createElement('div');
+  langStrip.className = 'model-lang-strip';
+  const stripLbl = document.createElement('span');
+  stripLbl.className = 'lang-strip-label';
+  stripLbl.textContent = 'Languages:';
+  langStrip.appendChild(stripLbl);
+
+  for (const l of activeLangs) {
+    const g = getModelGrade(m, l);
+    const pill = document.createElement('span');
+    let gradeClass = 'none';
+    if (g.startsWith('A')) gradeClass = 'a';
+    else if (g.startsWith('B')) gradeClass = 'b';
+    else if (g.startsWith('C') || g.startsWith('D')) gradeClass = 'c';
+    pill.className = `lang-pill grade-${gradeClass}`;
+
+    const langObj = (state.languages || []).find(x => x.code === l);
+    const langName = langObj ? langObj.name : l.toUpperCase();
+    pill.title = `${langName}: Grade ${g}`;
+    pill.innerHTML = `<span class="lang-code">${l.toUpperCase()}</span><span class="lang-grade">${g}</span>`;
+    langStrip.appendChild(pill);
+  }
+  mid.appendChild(langStrip);
+
+  const box = document.createElement('div'); box.className = 'llm-box'; box.dataset.mkey = m.key;
+  mid.appendChild(box);
+
+  // Right metrics area (Speed gauge + Size/Status)
+  const rightArea = document.createElement('div'); rightArea.className = 'model-metrics-area';
+
+  // Cellular Speed Bars
+  const speedDiv = document.createElement('div'); speedDiv.className = 'speed-indicator';
+  const bars = document.createElement('div');
+  bars.className = 'cellular-bars';
+  bars.dataset.bars = m.speed_bars || 3;
+  bars.innerHTML = '<i></i><i></i><i></i><i></i>';
+  const speedLabel = document.createElement('span');
+  speedLabel.className = 'speed-ms';
+  speedLabel.textContent = m.speed_text ? m.speed_text.split('(')[1]?.replace(')', '') || m.speed_text : (m.speed_bars === 4 ? '~50ms' : '~500ms');
+  speedDiv.append(bars, speedLabel);
+  speedDiv.title = `Latency: ${m.speed_text || 'Fast'}`;
+  rightArea.appendChild(speedDiv);
+
+  // Size and selection status
+  const sizeDiv = document.createElement('div'); sizeDiv.className = 'size-status-area';
+  const size = document.createElement('span'); size.className = 'size'; size.textContent = m.size + ' · ' + m.device;
+  const st = document.createElement('span'); st.className = 'st'; st.textContent = m.key === active ? 'Active' : 'Select';
+  sizeDiv.append(size, st);
+  rightArea.appendChild(sizeDiv);
+
+  el.append(left, mid, rightArea);
+
+  const pick = async () => {
+    const cur = (state.models || []).find(x => x.key === m.key) || m;
+    if (!cur.downloaded && !cur.bundled) {
+      if (cur.downloading) { toast('Still downloading ' + m.title + '…'); return; }
+      toast('Downloading ' + m.title + ' first…');
+      try { const list = await api.download_model(m.key); if (list) state.models = list; } catch (e) {}
+      renderModelStatus();
+      return;
+    }
+    if (state.settings.model_key === m.key) return;
+    state.settings.model_key = m.key;
+    document.querySelectorAll('.model').forEach(x => {
+      const on = x === el;
+      x.classList.toggle('active', on);
+      const stEl = x.querySelector('.st');
+      if (stEl) stEl.textContent = on ? 'Active' : 'Select';
+    });
+    setEngine(m);
+    await api.select_model(m.key);
+    toast('Switching to ' + m.title + '…');
+  };
+  el.onclick = pick;
+  el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } };
+
+  return el;
+}
+
+function dlBar(pct) {
+  const bar = document.createElement('div'); bar.className = 'dl-bar';
+  const fill = document.createElement('i');
+  if (pct == null) { fill.className = 'ind'; }
+  else { fill.style.width = Math.max(0, Math.min(100, Math.round(pct))) + '%'; }
+  bar.appendChild(fill);
+  return bar;
+}
+
+function renderModelStatus() {
+  const list = state.models || [];
+  for (const m of list) {
+    const box = document.querySelector('.llm-box[data-mkey="' + m.key + '"]');
+    if (!box) continue;
+    box.textContent = '';
+    const left = document.createElement('div'); left.className = 'dl-left';
+    const txt = document.createElement('span');
+    left.appendChild(txt);
+    box.appendChild(left);
+    if (m.downloaded) {
+      txt.textContent = m.bundled ? 'Included with the app · ready' : 'On this PC · ready';
+      if (!m.bundled) {
+        const del = document.createElement('button');
+        del.className = 'btn-sm dict-del'; del.textContent = 'Delete';
+        del.onclick = async (e) => {
+          e.stopPropagation();
+          const ok = await confirmModal('Delete ' + m.title + '?',
+            'Frees ~' + (m.size || 'disk space') + '. You can re-download it anytime.', 'Delete');
+          if (!ok) return;
+          try {
+            const res = await api.delete_model(m.key);
+            if (res && res.models) state.models = res.models;
+            if (res && !res.ok) toast(res.reason === 'active' ? 'Switch to another model first' : 'Could not delete');
+            else toast(m.title + ' deleted');
+          } catch (err) { toast('Could not delete'); }
+          renderModelStatus();
+        };
+        box.appendChild(del);
+      }
+    } else if (m.downloading) {
+      const pct = (m.pct == null ? null : Math.max(0, Math.min(100, Math.round(m.pct))));
+      txt.textContent = (pct == null ? (m.progress || 'Downloading…') : pct + '%') + (m.size ? ' · ' + m.size : '');
+      left.appendChild(dlBar(pct));
+    } else {
+      const failed = /fail/i.test(m.progress || '');
+      txt.textContent = failed ? m.progress : 'Not downloaded · ' + (m.size || '');
+      const btn = document.createElement('button');
+      btn.className = 'btn-sm'; btn.textContent = failed ? 'Retry' : 'Download';
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        btn.disabled = true; btn.textContent = 'Starting…';
+        try {
+          const res = await api.download_model(m.key);
+          if (res) state.models = res;
+          else toast('Download failed to start');
+        } catch (err) { toast('Download failed to start'); }
+        renderModelStatus();
+      };
+      box.appendChild(btn);
+    }
+  }
+}
+
+// ---------- Render: languages ----------
+function renderLanguages() {
+  const all = state.languages || [];
+  const selected = new Set(state.settings.selected_languages || ['en']);
+  
+  const navCount = $('#nav-lang-count');
+  if (navCount) navCount.textContent = selected.size || '1';
+
+  const query = ($('#lang-search') ? $('#lang-search').value : '').trim().toLowerCase();
+
+  const matches = (lang) => {
+    if (!query) return true;
+    return lang.name.toLowerCase().includes(query) ||
+           (lang.native && lang.native.toLowerCase().includes(query)) ||
+           lang.code.toLowerCase().includes(query);
+  };
+
+  const quickGrid = $('#lang-quick-grid');
+  const allGrid = $('#lang-all-grid');
+  const quickTitle = $('#lang-quick-title');
+  const allTitle = $('#lang-all-title');
+  const allCount = $('#lang-all-count');
+
+  if (!quickGrid || !allGrid) return;
+
+  quickGrid.textContent = '';
+  allGrid.textContent = '';
+
+  const popularLangs = all.filter(l => l.popular && matches(l));
+  const remainingLangs = all.filter(l => !l.popular && matches(l));
+
+  if (allCount) {
+    const totalMatch = popularLangs.length + remainingLangs.length;
+    allCount.textContent = totalMatch ? '· ' + totalMatch : '';
+  }
+
+  if (quickTitle) quickTitle.style.display = (query && !popularLangs.length) ? 'none' : 'block';
+
+  const createCard = (lang) => {
+    const isChecked = selected.has(lang.code);
+    const card = document.createElement('div');
+    card.className = 'lang-card' + (isChecked ? ' active' : '');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'checkbox');
+    card.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+
+    const info = document.createElement('div');
+    info.className = 'lang-info';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'lang-name';
+    nameEl.textContent = lang.name;
+    if (lang.code === 'hinglish') {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = 'Romanized';
+      nameEl.appendChild(tag);
+    }
+
+    const nativeEl = document.createElement('div');
+    nativeEl.className = 'lang-native';
+    nativeEl.textContent = lang.native || lang.name;
+
+    info.append(nameEl, nativeEl);
+
+    const check = document.createElement('div');
+    check.className = 'lang-check';
+    check.innerHTML = ICON_CHECK;
+
+    card.append(info, check);
+
+    const toggle = async () => {
+      let curList = Array.from(selected);
+      if (selected.has(lang.code)) {
+        if (curList.length <= 1) {
+          toast('Keep at least 1 language active');
+          return;
+        }
+        selected.delete(lang.code);
+      } else {
+        selected.add(lang.code);
+      }
+      const updatedList = Array.from(selected);
+      state.settings.selected_languages = updatedList;
+      renderLanguages();
+      renderModels();
+      try {
+        if (api && api.set_selected_languages) {
+          await api.set_selected_languages(updatedList);
+        }
+      } catch (e) {}
+      const names = updatedList.map(c => {
+        const found = all.find(x => x.code === c);
+        return found ? found.name : c.toUpperCase();
+      });
+      toast('Languages: ' + names.join(', '));
+    };
+
+    card.onclick = toggle;
+    card.onkeydown = (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    };
+
+    return card;
+  };
+
+  popularLangs.forEach(lang => quickGrid.appendChild(createCard(lang)));
+  remainingLangs.forEach(lang => allGrid.appendChild(createCard(lang)));
+
+  if (!popularLangs.length && !remainingLangs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dict-empty';
+    empty.style.gridColumn = '1 / -1';
+    empty.textContent = 'No languages matching “' + query + '”.';
+    allGrid.appendChild(empty);
+  }
+}
+
+const _langSearch = $('#lang-search');
+if (_langSearch) _langSearch.addEventListener('input', () => renderLanguages());
+
+// ---------- Render: dictionary ----------
+function renderDictionary() {
+  const entries = state.dictionary || {};
+  const keys = Object.keys(entries).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  const navCount = $('#nav-dict-count');
+  if (navCount) navCount.textContent = keys.length || '';
+  const dc = $('#dict-count');
+  if (dc) dc.textContent = keys.length ? '· ' + keys.length : '';
+  const root = $('#dict-list');
+  if (!root) return;
+  root.textContent = '';
+  if (!keys.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dict-empty';
+    empty.textContent = 'No custom words yet. When Quotal mishears something, add it above — e.g. heard “badi”, always write “buddy”.';
+    root.appendChild(empty);
+    return;
+  }
+  for (const k of keys) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const info = document.createElement('div'); info.className = 'info';
+    const t = document.createElement('div'); t.className = 'dict-spoken';
+    const hs = document.createElement('span'); hs.textContent = k;
+    const arrow = document.createElement('span'); arrow.className = 'dict-to'; arrow.textContent = '→';
+    const ws = document.createElement('span'); ws.className = 'dict-written'; ws.textContent = entries[k];
+    t.append(hs, arrow, ws);
+    info.appendChild(t);
+    const del = document.createElement('button');
+    del.className = 'btn-sm dict-del';
+    del.innerHTML = ICON_TRASH;
+    del.title = 'Remove “' + k + '”';
+    del.setAttribute('aria-label', 'Remove ' + k);
+    del.onclick = async () => {
+      try {
+        if (api && api.remove_dictionary_entry) {
+          const res = await api.remove_dictionary_entry(k);
+          if (res && res.dictionary) state.dictionary = res.dictionary;
+          else delete state.dictionary[k];
+        } else { delete state.dictionary[k]; }
+      } catch (e) { delete state.dictionary[k]; }
+      renderDictionary();
+      toast('Removed “' + k + '”');
+    };
+    row.append(info, del);
+    root.appendChild(row);
+  }
+}
+
+async function dictAdd() {
+  const hEl = $('#dict-heard'), wEl = $('#dict-written');
+  const heard = (hEl.value || '').trim(), written = (wEl.value || '').trim();
+  if (!heard || !written) { toast('Type both “heard as” and “always write”'); return; }
+  try {
+    if (api && api.add_dictionary_entry) {
+      const res = await api.add_dictionary_entry(heard, written);
+      if (res && res.ok === false) { toast('Could not save — try again'); return; }
+      if (res && res.dictionary) state.dictionary = res.dictionary;
+      else state.dictionary[heard] = written;
+    } else { state.dictionary[heard] = written; }
+  } catch (e) { state.dictionary[heard] = written; }
+  hEl.value = ''; wEl.value = ''; hEl.focus();
+  renderDictionary();
+  toast('“' + heard + '” → “' + written + '” saved');
+}
+
+const _dictAddBtn = $('#dict-add-btn');
+if (_dictAddBtn) _dictAddBtn.addEventListener('click', dictAdd);
+for (const id of ['#dict-heard', '#dict-written']) {
+  const el = $(id);
+  if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); dictAdd(); } });
+}
+
+// ---------- Render: OTA update banner ----------
+let lastUpdateJson = '';
+function renderUpdate() {
+  const u = state.update || {};
+  const banner = $('#update-banner');
+  if (!banner) return;
+  if (u.phase !== 'available' && u.phase !== 'downloading' && u.phase !== 'ready') {
+    banner.style.display = 'none';
+    return;
+  }
+  banner.style.display = 'flex';
+  banner.textContent = '';
+  const dot = document.createElement('span'); dot.className = 'upd-dot';
+  const left = document.createElement('div'); left.className = 'dl-left';
+  const txt = document.createElement('div'); left.appendChild(txt);
+  const acts = document.createElement('div'); acts.className = 'upd-actions';
+  banner.append(dot, left, acts);
+  if (u.phase === 'available') {
+    const isPatch = u.kind === 'patch';
+    const tag = isPatch ? '⚡ Minor Update' : '📦 Major Update';
+    const sz = u.size_str ? ' (' + u.size_str + ')' : '';
+    txt.textContent = tag + ' v' + u.latest + ' available' + sz + ' (you have v' + u.current + ')';
+    const btn = document.createElement('button');
+    btn.className = 'btn-sm'; btn.textContent = isPatch ? 'Update' : 'Download';
+    btn.onclick = async () => {
+      btn.disabled = true; btn.textContent = 'Starting…';
+      u.phase = 'downloading';
+      u.downloaded = 0;
+      renderUpdate();
+      try { const r = await api.download_update(); if (r) { state.update = r; renderUpdate(); } }
+      catch (e) { toast('Could not start download'); renderUpdate(); }
+    };
+    acts.appendChild(btn);
+  } else if (u.phase === 'downloading') {
+    const pct = (u.total > 0) ? Math.max(0, Math.min(100, Math.round(u.downloaded / u.total * 100))) : null;
+    const mb = v => (v / 1048576).toFixed(1) + ' MB';
+    txt.textContent = 'Downloading ' + (u.kind === 'patch' ? 'minor update' : 'major update') + '… ' + (pct == null ? '' : pct + '% · ' + mb(u.downloaded) + ' / ' + mb(u.total));
+    left.appendChild(dlBar(pct));
+  } else if (u.phase === 'ready') {
+    const isPatch = u.kind === 'patch';
+    txt.textContent = (isPatch ? '⚡ Minor Update' : 'Major Update') + ' v' + (u.latest || '') + ' ready — restart to apply';
+    const btn = document.createElement('button');
+    btn.className = 'btn-sm'; btn.textContent = isPatch ? 'Apply & Restart' : 'Install & Restart';
+    btn.onclick = async () => {
+      const ok = await confirmModal(
+        (isPatch ? 'Apply Minor Update v' : 'Install Major Update v') + (u.latest || '') + '?',
+        isPatch ? 'Quotal will restart with the updated code.' : 'Quotal will quit and the installer will run.',
+        isPatch ? 'Apply & Restart' : 'Install & Restart'
+      );
+      if (!ok) return;
+      try { await api.install_update(); } catch (e) { toast('Could not launch installer'); }
+    };
+    acts.appendChild(btn);
+  }
+}
+
+// ---------- Render: compute device + GPU pack ----------
+function gpuDelBtn() {
+  const del = document.createElement('button');
+  del.className = 'btn-sm dict-del'; del.textContent = 'Delete'; del.style.marginTop = '8px';
+  del.onclick = async () => {
+    const ok = await confirmModal('Delete GPU pack?',
+      'Frees ~2 GB. Switch Compute to CPU first if it reports locked files.', 'Delete');
+    if (!ok) return;
+    try {
+      const res = await api.gpu_delete();
+      if (res && res.gpu) state.gpu = res.gpu;
+      toast(res && res.ok ? 'GPU pack deleted' : 'Could not delete' + (res && res.reason ? ' — ' + res.reason : ''));
+    } catch (e) { toast('Could not delete'); }
+    renderDevice();
+  };
+  return del;
+}
+
+function renderDevice() {
+  const s = state.settings || {};
+  const cur = (s.device && ['auto', 'cuda', 'cpu'].includes(s.device)) ? s.device : 'auto';
+  const seg = $('#device-seg');
+  if (seg) seg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.device === cur));
+  const st = $('#device-status'), dl = $('#device-dl');
+  if (!st || !dl) return;
+  dl.textContent = '';
+  const g = state.gpu || {};
+  if (g.downloading) {
+    const pct = (g.pct == null ? null : Math.max(0, Math.min(99, Math.round(g.pct))));
+    st.textContent = 'Downloading GPU pack… ' + (pct == null ? (g.progress || '') : pct + '%');
+    dl.appendChild(dlBar(pct));
+  } else if (g.installed && g.live) {
+    st.textContent = 'GPU acceleration active (NVIDIA). Auto uses it when available.';
+    dl.appendChild(gpuDelBtn());
+  } else if (g.installed && g.has_gpu) {
+    st.textContent = 'GPU pack installed — reopen Quotal to activate it.';
+    dl.appendChild(gpuDelBtn());
+  } else if (g.has_gpu && !g.installed) {
+    st.textContent = 'NVIDIA GPU found — GPU pack not installed, running on CPU for now.';
+    const btn = document.createElement('button');
+    btn.className = 'btn-sm'; btn.textContent = 'Get GPU pack (~2 GB)'; btn.style.marginTop = '8px';
+    btn.onclick = async () => {
+      btn.disabled = true; btn.textContent = 'Starting…';
+      try { const r = await api.gpu_download(); if (r) state.gpu = r; else toast('Could not start download'); }
+      catch (e) { toast('Could not start download'); }
+      renderDevice();
+    };
+    dl.appendChild(btn);
+  } else {
+    st.textContent = 'No NVIDIA GPU found — running on CPU. Force one to compare speed.';
+  }
 }
 
 // ---------- Render: settings ----------
 function renderLlmStatus() {
   const st = state.llm_status || {};
-  const txt = $('#llm-status-txt');
-  const btn = $('#llm-dl-btn');
-  if (!txt || !btn) return;
+  const box = $('#llm-status-box');
+  if (!box) return;
+  box.textContent = '';
+  const left = document.createElement('div'); left.className = 'dl-left';
+  const txt = document.createElement('span'); txt.id = 'llm-status-txt';
+  left.appendChild(txt);
+  box.appendChild(left);
   if (st.downloaded) {
-    if (st.ready) { txt.textContent = 'Ready — Qwen 2.5 0.5B, running on GPU'; btn.style.display = 'none'; }
-    else { txt.textContent = 'On disk but no GPU found — falling back to Instant tidy'; btn.style.display = 'none'; }
+    if (st.ready) { txt.textContent = 'Ready — Qwen 2.5 0.5B, running on GPU'; }
+    else { txt.textContent = 'On disk but no GPU found — falling back to Instant tidy'; }
+    const del = document.createElement('button');
+    del.className = 'btn-sm dict-del'; del.id = 'llm-del-btn'; del.textContent = 'Delete';
+    del.onclick = async (e) => {
+      e.stopPropagation();
+      const ok = await confirmModal('Delete Neural polish model?',
+        'Frees ~2 GB. Instant tidy keeps working; re-download anytime.', 'Delete');
+      if (!ok) return;
+      try {
+        const res = await api.delete_llm();
+        if (res && res.llm_status) state.llm_status = res.llm_status;
+        toast(res && res.ok ? 'Neural polish model deleted' : 'Could not delete');
+      } catch (err) { toast('Could not delete'); }
+      renderLlmStatus();
+    };
+    box.appendChild(del);
   } else if (st.downloading) {
-    txt.textContent = 'Downloading… ' + (st.size_mb ? st.size_mb + ' / ' + st.total_mb + ' MB' : 'starting');
-    btn.style.display = 'none';
+    const total = st.total_mb || 0, size = st.size_mb || 0;
+    const pct = (total > 0 && size >= 0) ? Math.max(0, Math.min(100, Math.round(size / total * 100))) : null;
+    txt.textContent = 'Downloading… ' + (pct == null ? (st.progress || 'starting') : pct + '% · ' + size + ' / ' + total + ' MB');
+    left.appendChild(dlBar(pct));
   } else {
     txt.textContent = 'Not installed · ~' + (st.total_mb || '940') + ' MB (Instant tidy is fine for most people)';
-    btn.style.display = 'inline-block';
+    const btn = document.createElement('button');
+    btn.className = 'btn-sm'; btn.id = 'llm-dl-btn'; btn.textContent = 'Download';
     btn.onclick = async (e) => {
       e.stopPropagation();
       btn.disabled = true;
@@ -1373,6 +2809,7 @@ function renderLlmStatus() {
       state.llm_status = await api.download_llm();
       renderLlmStatus();
     };
+    box.appendChild(btn);
   }
 }
 
@@ -1397,33 +2834,480 @@ function renderSettings() {
 
   renderLlmStatus();
 
+  const dSeg = $('#device-seg');
+  if (dSeg) {
+    dSeg.querySelectorAll('button').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const key = btn.dataset.device;
+        dSeg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        state.settings.device = key;
+        let live = true;
+        try {
+          if (api.select_device) {
+            const res = await api.select_device(key);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('device', key);
+          }
+        } catch (err) { try { await api.set_setting('device', key); } catch (_e) {} live = false; }
+        toast(live ? 'Compute: ' + key.toUpperCase() + ' — reloading model…' : 'Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+  renderDevice();
+
   // const pillNames = { orb: 'Aura', ember: 'Ember', meter: 'Meter', halo: 'Orbit', bloom: 'Bloom', nova: 'Nova', pulse: 'Pulse', wispr: 'Wispr', bloomcs: 'Bloom CS' };
   const pillNames = {
     bloom: 'Bloom',
-    wispr: 'Wispr'
+    wispr: 'Wispr',
+    quotal: 'Quotal',
+    'quotal-light': 'Quotal Light',
+    aurora: 'Aurora',
+    nothing: 'Nothing',
+    mercury: 'Mercury',
+    orbit: 'Orbit',
+    scribe: 'Scribe',
+    opus: 'Opus',
+    neon: 'Neon',
+    flipboard: 'Flipboard',
+    receipt: 'Receipt',
+    face: 'Face',
+    cassette: 'Cassette',
+    crt: 'CRT'
     /* orb: 'Aura', ember: 'Ember', meter: 'Meter', halo: 'Orbit', nova: 'Nova', pulse: 'Pulse', bloomcs: 'Bloom CS' */
   };
   // const curPill = state.settings.pill_style || 'orb';
-  const curPill = (state.settings.pill_style === 'wispr') ? 'wispr' : 'bloom';
+  const curPill = ['bloom', 'wispr', 'quotal', 'quotal-light', 'aurora', 'nothing', 'mercury', 'orbit', 'scribe', 'opus', 'neon', 'flipboard', 'receipt', 'face', 'cassette', 'crt'].includes(state.settings.pill_style) ? state.settings.pill_style : 'bloom';
+  const commitPill = async (card, key) => {
+    state.settings.pill_style = key;
+    document.querySelectorAll('.pillopt').forEach(c => c.classList.toggle('active', c === card));
+    let live = true;
+    try {
+      if (api.select_pill) {
+        const res = await api.select_pill(key);
+        live = !!(res && res.live);
+      } else {
+        await api.set_setting('pill_style', key);
+      }
+    } catch (e) { try { await api.set_setting('pill_style', key); } catch (_e) {} live = false; }
+    if (live) toast('Pill: ' + (pillNames[key] || key));
+    else toast('Saved — quit Quotal from the tray and reopen to apply');
+  };
   document.querySelectorAll('.pillopt').forEach(card => {
-    const key = card.dataset.pill;
+    const themes = (card.dataset.themes || '').split(',').filter(Boolean);
+    const key = themes.includes(curPill) ? curPill : card.dataset.pill;
     card.classList.toggle('active', key === curPill);
     card.onclick = async () => {
-      state.settings.pill_style = key;
-      document.querySelectorAll('.pillopt').forEach(c => c.classList.toggle('active', c === card));
-      let live = true;
-      try {
-        if (api.select_pill) {
-          const res = await api.select_pill(key);
-          live = !!(res && res.live);
-        } else {
-          await api.set_setting('pill_style', key);
-        }
-      } catch (e) { try { await api.set_setting('pill_style', key); } catch (_e) {} live = false; }
-      if (live) toast('Pill: ' + (pillNames[key] || key));
-      else toast('Saved — quit Quotal from the tray and reopen to apply');
+      const k = card.dataset.themes
+        ? (card.querySelector('.theme-seg .active')?.dataset.qtheme || card.dataset.pill)
+        : card.dataset.pill;
+      await commitPill(card, k);
     };
   });
+
+  // Quotal dark/light glass toggle inside the single Quotal card
+  const qSeg = $('#quotal-theme-seg');
+  if (qSeg) {
+    const qMark = val => qSeg.querySelectorAll('button').forEach(b =>
+      b.classList.toggle('active', b.dataset.qtheme === val));
+    qMark(['quotal', 'quotal-light'].includes(curPill) ? curPill : 'quotal');
+    qSeg.querySelectorAll('button').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        qMark(btn.dataset.qtheme);
+        const card = btn.closest('.pillopt');
+        await commitPill(card, btn.dataset.qtheme);
+      };
+    });
+  }
+
+  // Nothing pill LED color picker (presets call set_accent, custom sends any hex)
+  const normAccent = v => {
+    v = String(v || '').trim();
+    if (['amber', 'white', 'red', 'mint', 'ice'].includes(v)) return v;
+    const m = /^#?([0-9a-fA-F]{6})$/.exec(v);
+    return m ? ('#' + m[1].toUpperCase()) : null;
+  };
+  const picker = $('#led-picker');
+  if (picker) {
+    const cur = normAccent(state.settings.nothing_accent) || 'white';
+    state.settings.nothing_accent = cur;
+    const customInput = $('#led-custom');
+    if (customInput && cur.startsWith('#')) customInput.value = '#' + cur.slice(1).toLowerCase();
+    const markActive = val => picker.querySelectorAll('.sw[data-accent]').forEach(b =>
+      b.classList.toggle('active', b.dataset.accent === val));
+    markActive(cur);
+    const commit = async (val, label) => {
+      state.settings.nothing_accent = val;
+      markActive(val);
+      let live = true;
+      try {
+        if (api.set_nothing_accent) {
+          const res = await api.set_nothing_accent(val);
+          live = !!(res && res.live);
+        } else {
+          await api.set_setting('nothing_accent', val);
+        }
+      } catch (e) { try { await api.set_setting('nothing_accent', val); } catch (_e) {} live = false; }
+      if (live) toast('Nothing LEDs: ' + label);
+      else toast('Saved — quit Quotal from the tray and reopen to apply');
+    };
+    picker.querySelectorAll('.sw[data-accent]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        if (customInput && btn.dataset.accent === 'white') customInput.value = '#ffffff';
+        await commit(btn.dataset.accent, btn.title || btn.dataset.accent);
+      };
+    });
+    if (customInput) {
+      customInput.addEventListener('click', e => e.stopPropagation());
+      customInput.oninput = () => {
+        picker.querySelectorAll('.sw[data-accent]').forEach(b => b.classList.toggle('active', false));
+      };
+      customInput.onchange = async e => {
+        e.stopPropagation();
+        const hex = normAccent(customInput.value) || '#FFFFFF';
+        await commit(hex, 'custom ' + hex);
+      };
+    }
+  }
+
+  // Mercury pill reflection-color picker (presets + any custom color)
+  const normMercury = v => {
+    v = String(v || '').trim();
+    if (['orange', 'ice', 'violet', 'mint', 'mono'].includes(v)) return v;
+    const m = /^#?([0-9a-fA-F]{6})$/.exec(v);
+    return m ? ('#' + m[1].toUpperCase()) : null;
+  };
+  const mPicker = $('#mercury-picker');
+  if (mPicker) {
+    const mCur = normMercury(state.settings.mercury_accent) || 'orange';
+    state.settings.mercury_accent = mCur;
+    const mCustom = $('#mercury-custom');
+    if (mCustom && mCur.startsWith('#')) mCustom.value = '#' + mCur.slice(1).toLowerCase();
+    const mMark = val => mPicker.querySelectorAll('.sw[data-accent]').forEach(b =>
+      b.classList.toggle('active', b.dataset.accent === val));
+    mMark(mCur);
+    const mCommit = async (val, label) => {
+      state.settings.mercury_accent = val;
+      mMark(val);
+      let live = true;
+      try {
+        if (api.set_mercury_accent) {
+          const res = await api.set_mercury_accent(val);
+          live = !!(res && res.live);
+        } else {
+          await api.set_setting('mercury_accent', val);
+        }
+      } catch (e) { try { await api.set_setting('mercury_accent', val); } catch (_e) {} live = false; }
+      if (live) toast('Mercury reflection: ' + label);
+      else toast('Saved — quit Quotal from the tray and reopen to apply');
+    };
+    mPicker.querySelectorAll('.sw[data-accent]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        await mCommit(btn.dataset.accent, btn.title || btn.dataset.accent);
+      };
+    });
+    if (mCustom) {
+      mCustom.addEventListener('click', e => e.stopPropagation());
+      mCustom.oninput = () => {
+        mPicker.querySelectorAll('.sw[data-accent]').forEach(b => b.classList.toggle('active', false));
+      };
+      mCustom.onchange = async e => {
+        e.stopPropagation();
+        const hex = normMercury(mCustom.value) || '#FF882C';
+        await mCommit(hex, 'custom ' + hex);
+      };
+    }
+  }
+
+  // Orbit pill colour picker (limited to the 5 accents)
+  const oPicker = $('#orbit-picker');
+  if (oPicker) {
+    const oAccents = ['ion', 'solar', 'plasma', 'mint', 'mono'];
+    const oCur = oAccents.includes(state.settings.orbit_accent) ? state.settings.orbit_accent : 'ion';
+    state.settings.orbit_accent = oCur;
+    const oMark = val => oPicker.querySelectorAll('.sw[data-accent]').forEach(b =>
+      b.classList.toggle('active', b.dataset.accent === val));
+    oMark(oCur);
+    oPicker.querySelectorAll('.sw[data-accent]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.accent;
+        state.settings.orbit_accent = val;
+        oMark(val);
+        let live = true;
+        try {
+          if (api.set_orbit_accent) {
+            const res = await api.set_orbit_accent(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('orbit_accent', val);
+          }
+        } catch (e) { try { await api.set_setting('orbit_accent', val); } catch (_e) {} live = false; }
+        if (live) toast('Orbit colour: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+
+  // Neon pill theme picker (sunset | cyber | toxic | rose | ice)
+  const nePicker = $('#neon-picker');
+  if (nePicker) {
+    const neThemes = ['sunset', 'cyber', 'toxic', 'rose', 'ice'];
+    const neCur = neThemes.includes(state.settings.neon_theme) ? state.settings.neon_theme : 'cyber';
+    state.settings.neon_theme = neCur;
+    const neMark = val => nePicker.querySelectorAll('.sw[data-theme]').forEach(b =>
+      b.classList.toggle('active', b.dataset.theme === val)
+    );
+    neMark(neCur);
+    nePicker.querySelectorAll('.sw[data-theme]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.theme;
+        if (!val || state.settings.neon_theme === val) return;
+        state.settings.neon_theme = val;
+        neMark(val);
+        let live = true;
+        try {
+          if (api.set_neon_theme) {
+            const res = await api.set_neon_theme(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('neon_theme', val);
+          }
+        } catch (e) { try { await api.set_setting('neon_theme', val); } catch (_e) {} live = false; }
+        if (live) toast('Neon theme: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // Flipboard pill style picker (classic | amber | mint | ice)
+  const fbPicker = $('#flipboard-picker');
+  if (fbPicker) {
+    const fbStyles = ['classic', 'amber', 'mint', 'ice'];
+    const fbCur = fbStyles.includes(state.settings.flipboard_style) ? state.settings.flipboard_style : 'amber';
+    state.settings.flipboard_style = fbCur;
+    const fbMark = val => fbPicker.querySelectorAll('.sw[data-style]').forEach(b =>
+      b.classList.toggle('active', b.dataset.style === val)
+    );
+    fbMark(fbCur);
+    fbPicker.querySelectorAll('.sw[data-style]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.style;
+        if (!val || state.settings.flipboard_style === val) return;
+        state.settings.flipboard_style = val;
+        fbMark(val);
+        let live = true;
+        try {
+          if (api.set_flipboard_style) {
+            const res = await api.set_flipboard_style(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('flipboard_style', val);
+          }
+        } catch (e) { try { await api.set_setting('flipboard_style', val); } catch (_e) {} live = false; }
+        if (live) toast('Flipboard style: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // Receipt pill body picker (cream | graphite)
+  const rcPicker = $('#receipt-picker');
+  if (rcPicker) {
+    const rcBodies = ['cream', 'graphite'];
+    const rcCur = rcBodies.includes(state.settings.receipt_body) ? state.settings.receipt_body : 'cream';
+    state.settings.receipt_body = rcCur;
+    const rcMark = val => rcPicker.querySelectorAll('.sw[data-body]').forEach(b =>
+      b.classList.toggle('active', b.dataset.body === val)
+    );
+    rcMark(rcCur);
+    rcPicker.querySelectorAll('.sw[data-body]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.body;
+        if (!val || state.settings.receipt_body === val) return;
+        state.settings.receipt_body = val;
+        rcMark(val);
+        let live = true;
+        try {
+          if (api.set_receipt_body) {
+            const res = await api.set_receipt_body(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('receipt_body', val);
+          }
+        } catch (e) { try { await api.set_setting('receipt_body', val); } catch (_e) {} live = false; }
+        if (live) toast('Receipt body: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // Cassette pill body picker (orange | black | cream)
+  const casPicker = $('#cassette-picker');
+  if (casPicker) {
+    const casBodies = ['orange', 'black', 'cream'];
+    const casCur = casBodies.includes(state.settings.cassette_body) ? state.settings.cassette_body : 'orange';
+    state.settings.cassette_body = casCur;
+    const casMark = val => casPicker.querySelectorAll('.sw[data-body]').forEach(b =>
+      b.classList.toggle('active', b.dataset.body === val)
+    );
+    casMark(casCur);
+    casPicker.querySelectorAll('.sw[data-body]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.body;
+        if (!val || state.settings.cassette_body === val) return;
+        state.settings.cassette_body = val;
+        casMark(val);
+        let live = true;
+        try {
+          if (api.set_cassette_body) {
+            const res = await api.set_cassette_body(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('cassette_body', val);
+          }
+        } catch (e) { try { await api.set_setting('cassette_body', val); } catch (_e) {} live = false; }
+        if (live) toast('Cassette body: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // CRT pill case picker (walnut | mint | graphite)
+  const crtCasePicker = $('#crt-case-picker');
+  if (crtCasePicker) {
+    const cases = ['walnut', 'mint', 'graphite'];
+    const curCase = cases.includes(state.settings.crt_case) ? state.settings.crt_case : 'walnut';
+    state.settings.crt_case = curCase;
+    const caseMark = val => crtCasePicker.querySelectorAll('.sw[data-case]').forEach(b =>
+      b.classList.toggle('active', b.dataset.case === val)
+    );
+    caseMark(curCase);
+    crtCasePicker.querySelectorAll('.sw[data-case]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.case;
+        if (!val || state.settings.crt_case === val) return;
+        state.settings.crt_case = val;
+        caseMark(val);
+        let live = true;
+        try {
+          if (api.set_crt_case) {
+            const res = await api.set_crt_case(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('crt_case', val);
+          }
+        } catch (e) { try { await api.set_setting('crt_case', val); } catch (_e) {} live = false; }
+        if (live) toast('CRT case: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // CRT pill phosphor picker (amber | green | white)
+  const crtPhosphorPicker = $('#crt-phosphor-picker');
+  if (crtPhosphorPicker) {
+    const phosphors = ['amber', 'green', 'white'];
+    const curPhos = phosphors.includes(state.settings.crt_phosphor) ? state.settings.crt_phosphor : 'amber';
+    state.settings.crt_phosphor = curPhos;
+    const phosMark = val => crtPhosphorPicker.querySelectorAll('.sw[data-phosphor]').forEach(b =>
+      b.classList.toggle('active', b.dataset.phosphor === val)
+    );
+    phosMark(curPhos);
+    crtPhosphorPicker.querySelectorAll('.sw[data-phosphor]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.phosphor;
+        if (!val || state.settings.crt_phosphor === val) return;
+        state.settings.crt_phosphor = val;
+        phosMark(val);
+        let live = true;
+        try {
+          if (api.set_crt_phosphor) {
+            const res = await api.set_crt_phosphor(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('crt_phosphor', val);
+          }
+        } catch (e) { try { await api.set_setting('crt_phosphor', val); } catch (_e) {} live = false; }
+        if (live) toast('CRT phosphor: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // Opus pill accent picker (orange | ice | violet | mint | rose)
+  const opPicker = $('#opus-picker');
+  if (opPicker) {
+    const opAccents = ['orange', 'ice', 'violet', 'mint', 'rose'];
+    const opCur = opAccents.includes(state.settings.opus_accent) ? state.settings.opus_accent : 'orange';
+    state.settings.opus_accent = opCur;
+    const opMark = val => opPicker.querySelectorAll('.sw[data-accent]').forEach(b =>
+      b.classList.toggle('active', b.dataset.accent === val)
+    );
+    opMark(opCur);
+    opPicker.querySelectorAll('.sw[data-accent]').forEach(btn => {
+      btn.onclick = async e => {
+        e.stopPropagation();
+        const val = btn.dataset.accent;
+        if (!val || state.settings.opus_accent === val) return;
+        state.settings.opus_accent = val;
+        opMark(val);
+        let live = true;
+        try {
+          if (api.set_opus_accent) {
+            const res = await api.set_opus_accent(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('opus_accent', val);
+          }
+        } catch (e) { try { await api.set_setting('opus_accent', val); } catch (_e) {} live = false; }
+        if (live) toast('Opus accent: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
+
+  // Scribe pill accent picker (orange | ice | violet | mint | rose)
+  const scPicker = $('#scribe-picker');
+  if (scPicker) {
+    const scAccents = ['orange', 'ice', 'violet', 'mint', 'rose'];
+    const scCur = scAccents.includes(state.settings.scribe_accent) ? state.settings.scribe_accent : 'orange';
+    state.settings.scribe_accent = scCur;
+    const scMark = val => scPicker.querySelectorAll('.sw[data-accent]').forEach(b =>
+      b.classList.toggle('active', b.dataset.accent === val));
+    scMark(scCur);
+    scPicker.querySelectorAll('.sw[data-accent]').forEach(btn => {
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        const val = btn.dataset.accent;
+        if (!val || state.settings.scribe_accent === val) return;
+        state.settings.scribe_accent = val;
+        scMark(val);
+        let live = true;
+        try {
+          if (api.set_scribe_accent) {
+            const res = await api.set_scribe_accent(val);
+            live = !!(res && res.live);
+          } else {
+            await api.set_setting('scribe_accent', val);
+          }
+        } catch (e) { try { await api.set_setting('scribe_accent', val); } catch (_e) {} live = false; }
+        if (live) toast('Scribe accent: ' + (btn.title || val));
+        else toast('Saved — quit Quotal from the tray and reopen to apply');
+      };
+    });
+  }
 
   document.querySelectorAll('.switch[data-key]').forEach(sw => {
     const k = sw.dataset.key;
@@ -1456,7 +3340,7 @@ function renderSettings() {
 
   // Appearance (theme)
   const activeTheme = (state.settings && state.settings.theme) ? state.settings.theme : currentTheme;
-  document.querySelectorAll('.theme-opt').forEach(btn => {
+  document.querySelectorAll('.theme-opt[data-theme]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.theme === activeTheme);
     btn.onclick = () => {
       const chosenTheme = btn.dataset.theme;
@@ -1610,21 +3494,58 @@ async function poll() {
       renderDate();
     }
     if (r.llm_status) { state.llm_status = r.llm_status; renderLlmStatus(); }
+    if (r.update) {
+      const uj = JSON.stringify(r.update);
+      if (uj !== lastUpdateJson) { lastUpdateJson = uj; state.update = r.update; renderUpdate(); }
+    }
+    if (r.gpu) {
+      const gj = JSON.stringify(r.gpu);
+      if (gj !== lastGpuJson) { lastGpuJson = gj; state.gpu = r.gpu; renderDevice(); }
+    }
+    if (r.models) {
+      const mj = JSON.stringify(r.models);
+      if (mj !== lastModelsJson) { lastModelsJson = mj; state.models = r.models; renderModels(); }
+    }
   } catch (e) {}
-  setTimeout(poll, 1200);
+  const isDownloading = state.update && state.update.phase === 'downloading';
+  setTimeout(poll, isDownloading ? 250 : 1200);
 }
 
-window.addEventListener('pywebviewready', async () => {
+async function initPywebview() {
+  if (window._pywebviewInitialized) return;
+  if (!window.pywebview || !window.pywebview.api) return;
+  window._pywebviewInitialized = true;
   api = window.pywebview.api;
-  state = await api.get_state();
+  try {
+    state = await api.get_state();
+  } catch (e) {
+    console.error('get_state error:', e);
+    return;
+  }
   const theme = (state.settings && state.settings.theme) ? state.settings.theme : currentTheme;
   applyTheme(theme, false);
   try {
     if (api && api.set_theme) api.set_theme(theme);
   } catch(e) {}
-  renderDate(); renderStats(); renderHistory(); renderModels(); renderSettings();
+  renderDate(); renderStats(); renderHistory(); renderModels(); renderLanguages(); renderSettings(); renderDictionary(); renderModelStatus();
+  renderUpdate(); renderDevice();
+  try { lastModelsJson = JSON.stringify(state.models || []); } catch (e) {}
+  try { lastUpdateJson = JSON.stringify(state.update || {}); } catch (e) {}
+  try { lastGpuJson = JSON.stringify(state.gpu || {}); } catch (e) {}
   setTimeout(poll, 1200);
-});
+}
+
+window.addEventListener('pywebviewready', initPywebview);
+if (window.pywebview && window.pywebview.api) {
+  initPywebview();
+} else {
+  const _readyInterval = setInterval(() => {
+    if (window.pywebview && window.pywebview.api) {
+      clearInterval(_readyInterval);
+      initPywebview();
+    }
+  }, 80);
+}
 applyTheme(currentTheme, false);
 renderDate();
 document.addEventListener('contextmenu', e => { if (!e.target.closest('input, .text')) e.preventDefault(); });

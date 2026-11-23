@@ -1,30 +1,39 @@
 import os
+import subprocess
+import sys
 
-desktop = os.path.expanduser('~/Desktop')
-shortcut_path = os.path.join(desktop, 'Quotal.lnk')
-old_shortcut = os.path.join(desktop, 'WinVoice.lnk')
-if os.path.exists(old_shortcut):
-    try:
-        os.remove(old_shortcut)
-    except Exception:
-        pass
 proj_dir = os.path.dirname(os.path.abspath(__file__))
-exe_path = os.path.join(proj_dir, 'Quotal.exe')
-icon_path = os.path.join(proj_dir, 'quotal.ico')
+pythonw_path = os.path.join(proj_dir, ".venv", "Scripts", "pythonw.exe")
+app_path = os.path.join(proj_dir, "app.py")
+icon_path = os.path.join(proj_dir, "quotal.ico")
 
-vbs = f'''
-Set oWS = WScript.CreateObject("WScript.Shell")
-sLinkFile = "{shortcut_path}"
-Set oLink = oWS.CreateShortcut(sLinkFile)
-oLink.TargetPath = "{exe_path}"
-oLink.WorkingDirectory = "{proj_dir}"
-oLink.Description = "Quotal - Intelligent Voice Dictation"
-oLink.IconLocation = "{icon_path},0"
-oLink.Save
-'''
-with open('_tmp_sc.vbs', 'w', encoding='utf-8') as f:
-    f.write(vbs)
-os.system('cscript //nologo _tmp_sc.vbs')
-if os.path.exists('_tmp_sc.vbs'):
-    os.remove('_tmp_sc.vbs')
-print('Desktop shortcut created successfully with custom icon at:', shortcut_path)
+ps_script = f"""
+$desktop = [Environment]::GetFolderPath('Desktop')
+if (-not $desktop -or -not (Test-Path $desktop)) {{ $desktop = "$env:USERPROFILE\\Desktop" }}
+$shortcutPath = Join-Path $desktop "Quotal.lnk"
+
+# Remove old WinVoice shortcut if exists
+$oldShortcut = Join-Path $desktop "WinVoice.lnk"
+if (Test-Path $oldShortcut) {{ Remove-Item $oldShortcut -Force -ErrorAction SilentlyContinue }}
+
+$WshShell = New-Object -ComObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut($shortcutPath)
+$Shortcut.TargetPath = '{pythonw_path}'
+$Shortcut.Arguments = '"{app_path}"'
+$Shortcut.WorkingDirectory = '{proj_dir}'
+$Shortcut.IconLocation = '{icon_path},0'
+$Shortcut.Description = 'Quotal - Intelligent Voice Dictation'
+$Shortcut.Save()
+
+Write-Output "SUCCESS: Shortcut updated at $shortcutPath pointing to pythonw.exe"
+"""
+
+cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script]
+res = subprocess.run(cmd, capture_output=True, text=True)
+if res.returncode == 0 and "SUCCESS:" in res.stdout:
+    print(res.stdout.strip())
+else:
+    if res.stdout.strip():
+        print(res.stdout.strip())
+    if res.stderr.strip():
+        print("Error:", res.stderr.strip())

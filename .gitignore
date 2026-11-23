@@ -37,6 +37,27 @@ models/
 history.jsonl
 crash*.txt
 *.log
+dictionary.json
+snippets.json
+
+# Large installer output binaries & logs
+installer/Output/
+installer/*.log
+
+# Scratch, reverse engineering & vendor binaries
+.agents/
+.tmp/
+base.apk
+base/
+castle/
+tools/
+handy_runtime/
+replica-download-page/
+replicate-spotify/
+languageServer.js
+smart_enhancer_new.py
+transcribe.h
+*.dll
 
 # Windows temporary / shortcut files
 _tmp*
