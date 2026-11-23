@@ -1,5 +1,5 @@
 {
-  "model_key": "parakeet_v3",
+  "model_key": "nemotron",
   "selected_languages": [
     "en"
   ],
@@ -8,9 +8,10 @@
   "enhancer_mode": "rules",
   "strip_hesitations": true,
   "audio_chimes": true,
-  "pill_x": 634,
-  "pill_y": 582,
-  "pill_style": "crt",
+  "paste_mode": "direct",
+  "pill_x": 659,
+  "pill_y": 650,
+  "pill_style": "cassette",
   "orbit_accent": "ion",
   "mercury_accent": "orange",
   "nothing_accent": "white",

@@ -30,7 +30,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputBaseFilename=QuotalSetup
-SetupIconFile=..\quotal.ico
+SetupIconFile=..\assets\quotal.ico
 UninstallDisplayIcon={app}\{#MyAppExe}
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
@@ -82,10 +82,10 @@ Source: "..\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createalls
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Quotal"; ValueData: """{app}\{#MyAppExe}"" --silent"; Flags: uninsdeletevalue; Tasks: startup
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; IconFilename: "{app}\quotal.ico"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; IconFilename: "{app}\assets\quotal.ico"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; IconFilename: "{app}\quotal.ico"; Tasks: desktopicon
-Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Parameters: "--silent"; WorkingDir: "{app}"; IconFilename: "{app}\quotal.ico"; Tasks: startup
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; IconFilename: "{app}\assets\quotal.ico"; Tasks: desktopicon
+Name: "{userstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExe}"; Parameters: "--silent"; WorkingDir: "{app}"; IconFilename: "{app}\assets\quotal.ico"; Tasks: startup
 
 [Run]
 ; Always relaunch after install — including /SILENT OTA updates, where the

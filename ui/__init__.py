@@ -1,0 +1,1 @@
+"""Package ui for Quotal."""

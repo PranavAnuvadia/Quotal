@@ -32,8 +32,16 @@ try:
     os.chdir(PROJECT_ROOT)
 except Exception:
     pass
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+
+for _sub in [PROJECT_ROOT,
+             os.path.join(PROJECT_ROOT, "core"),
+             os.path.join(PROJECT_ROOT, "engine"),
+             os.path.join(PROJECT_ROOT, "processing"),
+             os.path.join(PROJECT_ROOT, "ui"),
+             os.path.join(PROJECT_ROOT, "ui", "dashboard"),
+             os.path.join(PROJECT_ROOT, "pills")]:
+    if _sub not in sys.path:
+        sys.path.insert(0, _sub)
 
 LOG_FILE = os.path.join(PROJECT_ROOT, "quotal.log")
 
@@ -104,16 +112,17 @@ if hasattr(threading, "excepthook"):
                 pass
     threading.excepthook = handle_thread_exception
 
-from audio_recorder import AudioRecorder
-from transcriber import Transcriber
-from cleaner import clean_text, devanagari_to_hinglish
-from smart_enhancer import enhance_text, enhance_text_dispatch
-from injector import paste_text
-from overlay_pill import OverlayPill
-from tray_manager import TrayManager
-from single_instance import SingleInstance
-import history_manager
-import settings_manager
+from engine.audio_recorder import AudioRecorder
+from engine.transcriber import Transcriber
+from processing.cleaner import devanagari_to_hinglish
+from processing.foreground_context import capture_app_context
+from processing.smart_enhancer import enhance_text_dispatch, warm_up_llm
+from processing.injector import paste_text
+from pills.overlay_pill import OverlayPill
+from ui.tray_manager import TrayManager
+from core.single_instance import SingleInstance
+from processing import history_manager
+from core import settings_manager
 
 # Windows Virtual Key Codes
 VK_RMENU = 0xA5    # Right Alt (works on US, UK, and Indian AltGr layouts)
@@ -179,6 +188,7 @@ class QuotalApp:
                     self.transcriber = t
                     self.transcriber_ready.set()
                 print(f"[App] Active Model Ready: {model_cfg['name']}")
+                warm_up_llm(self.settings.get("enhancer_mode", "rules"))
             except Exception as e:
                 print(f"[App Error] Failed to load model: {e}")
                 self.transcriber_ready.set()
@@ -274,7 +284,9 @@ class QuotalApp:
                 pass
 
             base_dir = os.path.dirname(os.path.abspath(__file__))
-            script_path = os.path.join(base_dir, "dashboard_host.py")
+            script_path = os.path.join(base_dir, "ui", "dashboard", "dashboard_host.py")
+            if not os.path.exists(script_path):
+                script_path = os.path.join(base_dir, "dashboard_host.py")
             venv_py = os.path.join(base_dir, ".venv", "Scripts", "pythonw.exe")
             if not os.path.exists(venv_py):
                 venv_py = os.path.join(base_dir, ".venv", "Scripts", "python.exe")
@@ -583,6 +595,7 @@ class QuotalApp:
         with self._lock:
             if self.is_recording:
                 return
+            self._dictation_app_context = capture_app_context()
             self.is_recording = True
 
         self._play_chime(800, 35)
@@ -600,6 +613,9 @@ class QuotalApp:
         except Exception as e:
             print(f"[Recorder Error] {e}")
 
+        curr_settings = settings_manager.load_settings()
+        warm_up_llm(curr_settings.get("enhancer_mode", "rules"))
+
         # If streaming model (Nemotron), start stream session and consumer thread
         with self._lock:
             transcriber = self.transcriber
@@ -609,7 +625,6 @@ class QuotalApp:
             import queue
             self._stream_queue = queue.Queue()
 
-            curr_settings = settings_manager.load_settings()
             selected_langs = curr_settings.get("selected_languages", ["en"])
             has_hindi = "hi" in selected_langs
             has_hinglish = "hinglish" in selected_langs
@@ -684,6 +699,7 @@ class QuotalApp:
             self.is_recording = False
             # Immediately capture recorded audio to eliminate cross-thread race conditions
             audio = self.recorder.stop()
+            app_context = self._dictation_app_context
 
         self._meter_running = False
         if hasattr(self, "_stream_queue") and self._stream_queue:
@@ -695,9 +711,9 @@ class QuotalApp:
             print(f"[Overlay Error] {e}")
         print("[⚡ Transcribing...]")
 
-        threading.Thread(target=self._process_and_paste, args=(audio,), daemon=True).start()
+        threading.Thread(target=self._process_and_paste, args=(audio, app_context), daemon=True).start()
 
-    def _process_and_paste(self, audio: np.ndarray = None):
+    def _process_and_paste(self, audio: np.ndarray = None, app_context: dict | None = None):
         try:
             if audio is None or len(audio) == 0:
                 audio = self.recorder.stop()
@@ -753,20 +769,22 @@ class QuotalApp:
                 if has_hinglish or is_english_only:
                     raw_text = devanagari_to_hinglish(raw_text)
 
-            # 2. Hesitation cleanup (simple-voice deterministic engine)
-            cleaned = clean_text(raw_text)
-
-            # 3. AI Smart Enhancer pass (Rules or Qwen 0.5B LLM)
+            # 2. Preserve ASR cues for the enhancer's intent and correction passes.
             mode = curr_settings.get("enhancer_mode")
             if not mode:
                 mode = "rules" if curr_settings.get("ai_enhance", True) else "off"
-            cleaned = enhance_text_dispatch(cleaned, mode=mode)
+            enhance_started = time.perf_counter()
+            cleaned = enhance_text_dispatch(
+                raw_text, mode=mode, style=curr_settings.get("enhancer_style", "default"),
+                app_context=app_context,
+            )
+            enhancement_ms = (time.perf_counter() - enhance_started) * 1000
 
             # Push cleaned enhanced text to caption pill (soft flash on changed words)
             if cleaned:
                 self.overlay.set_text(cleaned)
 
-            print(f"⏱️  Spoke: {duration:.1f}s | Latency: {elapsed*1000:.0f}ms")
+            print(f"⏱️  Spoke: {duration:.1f}s | ASR: {elapsed*1000:.0f}ms | Enhancement: {enhancement_ms:.1f}ms")
             print(f"📝 Raw:     \"{raw_text}\"")
             print(f"✨ Cleaned: \"{cleaned}\"")
 
@@ -779,8 +797,17 @@ class QuotalApp:
                     latency_ms=elapsed * 1000.0
                 )
                 self._play_chime(1200, 40)
-                paste_text(cleaned, restore_clipboard=False)
-                print("📋 Pasted directly at cursor & copied to clipboard!")
+                paste_mode = curr_settings.get("paste_mode", "direct")
+                if paste_mode == "clipboard":
+                    import pyperclip
+                    try:
+                        pyperclip.copy(cleaned)
+                    except Exception:
+                        pass
+                    print("📋 Copied to clipboard only (direct paste disabled in settings).")
+                else:
+                    paste_text(cleaned, restore_clipboard=False)
+                    print("📋 Pasted directly at cursor & copied to clipboard!")
                 self.overlay.set_done()
                 # Non-blocking auto-hide: free this worker thread immediately (0ms delay)
                 threading.Timer(0.35, lambda: self.overlay.hide()).start()
